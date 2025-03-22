@@ -6,7 +6,7 @@
 
 %union {
    int num;
-   char *name;
+   char *ident;
 }
 
 %define parse.error verbose
@@ -19,15 +19,15 @@
 %token COLON EQUALS
 
 %token <num> NUMBER
-%token <name> NAME
+%token <ident> IDENT
 
 %%
 input: /* empty */ | input axiom_definition;
-axiom_definition: KW_AXIOM NAME parameters COLON expr EQUALS expr;
-parameters: /* empty */ | parameters NAME;
+axiom_definition: KW_AXIOM IDENT parameters COLON expr EQUALS expr;
+parameters: /* empty */ | parameters IDENT;
 
 expr: NUMBER
-    | NAME
+    | IDENT
     | PAREN_OPEN expr_list PAREN_CLOSE
     ;
 

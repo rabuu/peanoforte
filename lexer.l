@@ -5,7 +5,7 @@
 %option nounput noinput noyywrap
 
 DIGIT [0-9]
-NAME [a-zA-Z][a-zA-Z0-9-]*
+IDENT [a-zA-Z][a-zA-Z0-9-]*
 
 %%
 
@@ -37,9 +37,9 @@ NAME [a-zA-Z][a-zA-Z0-9-]*
 	return NUMBER;
 }
 
-{NAME} {
-	yylval.name = yytext;
-	return NAME;
+{IDENT} {
+	yylval.ident = yytext;
+	return IDENT;
 }
 
 %%
