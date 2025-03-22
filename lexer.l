@@ -17,6 +17,8 @@ NAME [a-zA-Z][a-zA-Z0-9-]*
 "step" { return KW_STEP; }
 "todo" { return KW_TODO; }
 "succ" { return KW_SUCC; }
+"by" { return KW_BY; }
+"rev" { return KW_REV; }
 
 "(" { return PAREN_OPEN; }
 ")" { return PAREN_CLOSE; }
@@ -27,8 +29,6 @@ NAME [a-zA-Z][a-zA-Z0-9-]*
 
 ":" { return COLON; }
 "=" { return EQUALS; }
-"@" { return APPLY; }
-"$" { return APPLY_BACKWARDS; }
 
 [ \t\n]+ { }
 

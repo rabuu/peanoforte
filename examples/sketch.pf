@@ -3,42 +3,42 @@ axiom addition a b: (+ a (succ b)) = (succ (+ a b))
 
 example (+ 1 1) = 2 {
 	(+ 1 1)
-	@addition
+	by addition
 	(succ [+ 1 0])
-	@addition-neutrum
+	by addition-neutrum
 	(succ 1)
 }
 
 theorem add-one a: (+ a 1) = (succ a) {
 	(+ a 1)
-	@addition
+	by addition
 	(succ [+ a 0])
-	@addition-neutrum
+	by addition-neutrum
 	(succ a)
 }
 
 example (+ 1 1) = 2 {
 	(+ 1 1)
-	@add-one
+	by add-one
 	(succ 1)
 }
 
 theorem add-two a: (+ a 2) = (succ (succ a)) {
 	(+ a 2)
-	@addition
+	by addition
 	(succ [+ a 1])
-	@add-one
+	by add-one
 	(succ (succ a))
 }
 
 theorem addition-neutrum-left a: (+ 0 a) = a
 induction a {
-	base { (+ 0 0) @addition-neutrum 0 }
+	base { (+ 0 0) by addition-neutrum 0 }
 	step {
 		(+ 0 (succ a))
-		@addition
+		by addition
 		(succ [+ 0 a])
-		@induction
+		by induction
 		(succ a)
 	}
 }
@@ -47,18 +47,18 @@ theorem addition-left a b: (+ (succ a) b) = (succ (+ a b))
 induction b {
 	base {
 		(+ (succ a) 0)
-		@addition-neutrum
+		by addition-neutrum
 		(succ [a])
-		$addition-neutrum
+		by rev addition-neutrum
 		(succ (+ a 0))
 	}
 	step {
 		(+ (succ a) (succ b))
-		@addition
+		by addition
 		(succ [+ (succ a) b])
-		@induction
+		by induction
 		(succ [succ (+ a b)])
-		$addition
+		by rev addition
 		(succ (+ a (succ b)))
 	}
 }
@@ -67,18 +67,18 @@ theorem addition-commutativity<a, b> (+ a b) = (+ b a)
 induction b {
 	base {
 		(+ a 0)
-		@addition-neutrum
+		by addition-neutrum
 		a
-		$addition-neutrum-left
+		by rev addition-neutrum-left
 		(+ 0 a)
 	}
 	step {
 		(+ a (succ b))
-		@addition
+		by addition
 		(succ [+ a b])
-		@induction
+		by induction
 		(succ (+ b a))
-		$addition-left
+		by rev addition-left
 		(+ (succ b) a)
 	}
 }
