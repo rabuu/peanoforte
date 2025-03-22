@@ -1,7 +1,7 @@
 CC = cc
 CFLAGS = -Wextra -Wall -std=c23
 
-peanoforte: lexer.c parser.c
+peanoforte: main.c lexer.c parser.c ast.c
 	$(CC) $(CFLAGS) $^ -o $@
 
 lexer.h lexer.c: lexer.l
