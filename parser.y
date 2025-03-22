@@ -45,7 +45,7 @@ program: axiom_section { $$ = PF_program($1); PF_ast = $$; };
 axiom_section: /* empty */ { $$ = nullptr; }
              | axiom_definition axiom_section { $$ = PF_axiom_list($1, $2); }
 
-axiom_definition: KW_AXIOM IDENT parameters COLON expr EQUALS expr { $$ = nullptr; }
+axiom_definition: KW_AXIOM IDENT parameters COLON expr EQUALS expr { $$ = PF_axiom($2, $3, $5, $7); }
 
 parameters: /* empty */ { $$ = nullptr; }
           | IDENT parameters { $$ = PF_ident_list($1, $2); }
