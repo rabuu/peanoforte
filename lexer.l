@@ -37,6 +37,9 @@ NAME [a-zA-Z][a-zA-Z0-9-]*
 	return NUMBER;
 }
 
-{NAME} { return NAME; }
+{NAME} {
+	yylval.name = yytext;
+	return NAME;
+}
 
 %%
