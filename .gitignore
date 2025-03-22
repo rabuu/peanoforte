@@ -1,0 +1,7 @@
+peanoforte
+*.o
+lexer.c
+lexer.h
+parser.c
+parser.h
+/examples/test.pf
