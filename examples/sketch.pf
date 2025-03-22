@@ -83,7 +83,7 @@ induction b {
 	}
 }
 
-;; Use `trustme` to force (possibly wrong) proofs
+;; Use `todo` to force (possibly wrong) proofs
 example (+ 1 1) = 3 {
 	todo
 }
