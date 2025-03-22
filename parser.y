@@ -21,9 +21,9 @@
 %token NAME
 
 %%
-input: /* nothing */ | input axiom_definition;
+input: /* empty */ | input axiom_definition;
 axiom_definition: KW_AXIOM parameters COLON CURLY_OPEN CURLY_CLOSE;
-parameters: /* nothing */ | parameters NAME;
+parameters: /* empty */ | parameters NAME;
 %%
 
 int main(int argc, char **argv) {
