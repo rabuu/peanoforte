@@ -3,6 +3,7 @@
 %}
 
 %option nounput noinput noyywrap
+%option never-interactive
 
 DIGIT [0-9]
 IDENT [a-zA-Z][a-zA-Z0-9-]*

@@ -1,5 +1,5 @@
 CC = cc
-# CFLAGS = -Wextra -Wall -std=c23
+CFLAGS = -Wextra -Wall -std=c23
 
 peanoforte: lexer.c parser.c
 	$(CC) $(CFLAGS) $^ -o $@
