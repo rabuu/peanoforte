@@ -1,4 +1,4 @@
-#include "ast_printer.h"
+#include "print.h"
 #include "parser.h"
 #include "ast.h"
 #include <stdio.h>
