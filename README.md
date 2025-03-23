@@ -1,4 +1,4 @@
-# PeanoForte
+# PeanoForte 🎹
 A Peano arithmetic proof verifier written in C.
 
 This project is a early work in progress.
