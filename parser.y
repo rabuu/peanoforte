@@ -7,7 +7,7 @@
 %}
 
 %code requires { #include "ast.h" }
-%code provides { PF_Program *PF_parse(char *filename); }
+%code provides { int PF_parse(char *filename, PF_Program **ast); }
 
 %union {
    int num;
@@ -61,19 +61,16 @@ expr_list: expr { $$ = PF_expr_list($1, nullptr); }
          ;
 %%
 
-PF_Program *PF_parse(char *filename) {
+int PF_parse(char *filename, PF_Program **ast) {
    yyin = fopen(filename, "r");
    if (yyin == NULL){
       printf("ERROR: can't read file %s\n", filename);
       exit(1);
    }
 
-   if (yyparse()) {
-      printf("ERROR: failed to parse file %s.\n", filename);
-   }
-
-   printf("SUCCESS: parsed file %s.\n", filename);
-   return PF_ast;
+   int success = yyparse();
+   *ast = PF_ast;
+   return success;
 }
 
 void yyerror(const char *msg) {

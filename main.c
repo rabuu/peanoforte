@@ -10,9 +10,10 @@ int main(int argc, char **argv) {
 	}
 
 	printf("Try to parse %s...\n", argv[1]);
-	PF_Program *ast = PF_parse(argv[1]);
+	PF_Program *ast; 
+	int parse_success = PF_parse(argv[1], &ast);
 
 	PF_print_program(ast);
 
-	return 0;
+	return parse_success;
 }
