@@ -33,12 +33,11 @@ struct _PF_Axiom {
 
 struct _PF_Expr {
 	enum {
-		PF_EXPR_NUM,
+		PF_EXPR_ZERO,
 		PF_EXPR_VAR,
 		PF_EXPR_SEXP,
 	} kind;
 	union {
-		int num;
 		ident var;
 		PF_ExprList *sexp;
 	};

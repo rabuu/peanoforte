@@ -17,7 +17,6 @@ IDENT [a-zA-Z][a-zA-Z0-9-]*
 "base" { return KW_BASE; }
 "step" { return KW_STEP; }
 "todo" { return KW_TODO; }
-"succ" { return KW_SUCC; }
 "by" { return KW_BY; }
 "rev" { return KW_REV; }
 

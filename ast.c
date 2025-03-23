@@ -33,21 +33,27 @@ PF_AxiomList *PF_axiom_list(PF_Axiom *axiom, PF_AxiomList *tail) {
 
 PF_Expr *PF_expr_num(int num) {
 	PF_Expr *expr = malloc(sizeof(PF_Expr));
-	expr->kind = PF_EXPR_NUM;
-	expr->num = num;
+	if (num == 0) {
+		expr->kind = PF_EXPR_ZERO;
+	} else {
+		expr->kind = PF_EXPR_SEXP;
+		PF_ExprList *rec = PF_expr_list(PF_expr_num(num - 1), nullptr);
+		PF_ExprList *sexp = PF_expr_list(PF_expr_var("succ"), rec);
+		expr->sexp = sexp;
+	}
 	return expr;
 }
 
 PF_Expr *PF_expr_var(ident var) {
 	PF_Expr *expr = malloc(sizeof(PF_Expr));
-	expr->kind = PF_EXPR_NUM;
+	expr->kind = PF_EXPR_VAR;
 	expr->var = var;
 	return expr;
 }
 
 PF_Expr *PF_expr_sexp(PF_ExprList *sexp) {
 	PF_Expr *expr = malloc(sizeof(PF_Expr));
-	expr->kind = PF_EXPR_NUM;
+	expr->kind = PF_EXPR_SEXP;
 	expr->sexp = sexp;
 	return expr;
 }
