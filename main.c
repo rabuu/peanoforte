@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
 	printf("Try to parse %s...\n", argv[1]);
 	PF_Program *ast = PF_parse(argv[1]);
 
-	PF_print_program(ast, 0);
+	PF_print_program(ast);
 
 	return 0;
 }

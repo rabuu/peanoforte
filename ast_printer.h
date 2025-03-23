@@ -3,6 +3,6 @@
 
 #include "ast.h"
 
-void PF_print_program(PF_Program *prog, int indent);
+void PF_print_program(PF_Program *prog);
 
 #endif // !AST_PRINTER_H
