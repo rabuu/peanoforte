@@ -8,14 +8,14 @@ PF_Program *PF_program(PF_AxiomList *axioms) {
 	return prog;
 }
 
-PF_IdentList *PF_ident_list(ident ident, PF_IdentList *tail) {
+PF_IdentList *PF_ident_list(PF_Ident ident, PF_IdentList *tail) {
 	PF_IdentList *idents = malloc(sizeof(PF_IdentList));
 	idents->ident = ident;
 	idents->tail = tail;
 	return idents;
 }
 
-PF_Axiom *PF_axiom(ident name, PF_IdentList *params, PF_Expr *lhs, PF_Expr *rhs) {
+PF_Axiom *PF_axiom(PF_Ident name, PF_IdentList *params, PF_Expr *lhs, PF_Expr *rhs) {
 	PF_Axiom *axiom = malloc(sizeof(PF_Axiom));
 	axiom->name = name;
 	axiom->params = params;
@@ -44,7 +44,7 @@ PF_Expr *PF_expr_num(int num) {
 	return expr;
 }
 
-PF_Expr *PF_expr_var(ident var) {
+PF_Expr *PF_expr_var(PF_Ident var) {
 	PF_Expr *expr = malloc(sizeof(PF_Expr));
 	expr->kind = PF_EXPR_VAR;
 	expr->var = var;

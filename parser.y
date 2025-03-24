@@ -11,7 +11,7 @@
 
 %union {
    int num;
-   ident ident;
+   PF_Ident ident;
    PF_IdentList *ident_list;
    PF_Program *program;
    PF_AxiomList *axiom_list;

@@ -1,7 +1,7 @@
 #ifndef AST_H
 #define AST_H
 
-typedef char* ident;
+typedef char* PF_Ident;
 
 typedef struct _PF_Program PF_Program;
 typedef struct _PF_IdentList PF_IdentList;
@@ -15,12 +15,12 @@ struct _PF_Program {
 };
 
 struct _PF_IdentList {
-	ident ident;
+	PF_Ident ident;
 	PF_IdentList *tail;
 };
 
 struct _PF_Axiom {
-	ident name;
+	PF_Ident name;
 	PF_IdentList *params;
 	PF_Expr *lhs;
 	PF_Expr *rhs;
@@ -38,7 +38,7 @@ struct _PF_Expr {
 		PF_EXPR_SEXP,
 	} kind;
 	union {
-		ident var;
+		PF_Ident var;
 		PF_ExprList *sexp;
 	};
 };
@@ -49,11 +49,11 @@ struct _PF_ExprList {
 };
 
 PF_Program *PF_program(PF_AxiomList *axioms);
-PF_IdentList *PF_ident_list(ident ident, PF_IdentList *tail);
-PF_Axiom *PF_axiom(ident name, PF_IdentList *params, PF_Expr *lhs, PF_Expr *rhs);
+PF_IdentList *PF_ident_list(PF_Ident ident, PF_IdentList *tail);
+PF_Axiom *PF_axiom(PF_Ident name, PF_IdentList *params, PF_Expr *lhs, PF_Expr *rhs);
 PF_AxiomList *PF_axiom_list(PF_Axiom *axiom, PF_AxiomList *tail);
 PF_Expr *PF_expr_num(int num);
-PF_Expr *PF_expr_var(ident var);
+PF_Expr *PF_expr_var(PF_Ident var);
 PF_Expr *PF_expr_sexp(PF_ExprList *sexp);
 PF_ExprList *PF_expr_list(PF_Expr *expr, PF_ExprList *tail);
 
