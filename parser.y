@@ -20,6 +20,8 @@
    PF_Expr *expr;
    PF_ExprList *expr_list;
    PF_Proof proof;
+   PF_ProofNodeExpr *proof_node_expr;
+   PF_ProofNodeTransform *proof_node_transform;
 }
 
 %define parse.error verbose
@@ -39,6 +41,8 @@
 %type <theorem> theorem;
 %type <ident_list> parameters;
 %type <proof> proof;
+%type <proof_node_transform> proof_node_transform;
+%type <proof_node_expr> proof_node_expr;
 %type <expr> expr;
 %type <expr_list> expr_list;
 
@@ -69,7 +73,24 @@ parameters:
 	/* empty */ { $$ = nullptr; }
 |   IDENT parameters { $$ = PF_ident_list($1, $2); };
 
-proof: CURLY_OPEN CURLY_CLOSE { $$ = PF_proof_direct(nullptr, nullptr); }
+proof:
+	CURLY_OPEN proof_node_transform CURLY_CLOSE {
+	 	$$ = PF_proof_direct(nullptr, $2);
+}|  CURLY_OPEN expr proof_node_transform CURLY_CLOSE {
+		$$ = PF_proof_direct($2, $3);
+};
+
+proof_node_transform:
+    /* empty */ { $$ = nullptr; }
+|   KW_BY IDENT proof_node_expr {
+		$$ = PF_proof_node_transform($2, false, $3);
+}|  KW_BY KW_REV IDENT proof_node_expr {
+		$$ = PF_proof_node_transform($3, true, $4);
+};
+
+proof_node_expr:
+  /* empty */ { $$ = nullptr; }
+| expr proof_node_transform { $$ = PF_proof_node_expr($1, $2); };
 
 expr:
 	NUMBER { $$ = PF_expr_num($1); }
