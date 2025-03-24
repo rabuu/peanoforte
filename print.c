@@ -34,7 +34,7 @@ void _print_expr(PF_Expr *expr) {
 		exit(1);
 	}
 
-	switch (expr->kind) {
+	switch (expr->tag) {
 		case PF_EXPR_ZERO:
 			expr->marked
 				? printf("[0]")
@@ -79,7 +79,7 @@ void print_proof_direct(PF_Expr *start, PF_ProofNodeTransform *initial_transform
 }
 
 void print_proof(PF_Proof *proof) {
-	switch (proof->kind) {
+	switch (proof->tag) {
 		case PF_PROOF_DIRECT:
 			print_proof_direct(proof->direct.start, proof->direct.transform);
 			break;
@@ -113,7 +113,7 @@ void print_toplevel(PF_TopLevel *toplevel) {
 		exit(1);
 	}
 
-	switch (toplevel->kind) {
+	switch (toplevel->tag) {
 		case PF_TOPLEVEL_AXIOM: print_axiom(&toplevel->axiom); break;
 		case PF_TOPLEVEL_THEOREM: print_theorem(&toplevel->theorem); break;
 	}

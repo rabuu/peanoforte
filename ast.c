@@ -11,14 +11,14 @@ PF_Program *PF_program(PF_TopLevel toplevel, PF_Program *rest) {
 
 PF_TopLevel PF_toplevel_axiom(PF_Axiom axiom) {
 	return (PF_TopLevel) {
-		.kind = PF_TOPLEVEL_AXIOM,
+		.tag = PF_TOPLEVEL_AXIOM,
 		.axiom = axiom,
 	};
 }
 
 PF_TopLevel PF_toplevel_theorem(PF_Theorem theorem) {
 	return (PF_TopLevel) {
-		.kind = PF_TOPLEVEL_THEOREM,
+		.tag = PF_TOPLEVEL_THEOREM,
 		.theorem = theorem,
 	};
 }
@@ -52,9 +52,9 @@ PF_Theorem PF_theorem(PF_Ident name, PF_IdentList *params, PF_Expr *lhs, PF_Expr
 PF_Expr *PF_expr_num(int num, bool marked) {
 	PF_Expr *expr = malloc(sizeof(PF_Expr));
 	if (num == 0) {
-		expr->kind = PF_EXPR_ZERO;
+		expr->tag = PF_EXPR_ZERO;
 	} else {
-		expr->kind = PF_EXPR_SEXP;
+		expr->tag = PF_EXPR_SEXP;
 		PF_ExprList *rec = PF_expr_list(PF_expr_num(num - 1, false), nullptr);
 		PF_ExprList *sexp = PF_expr_list(PF_expr_var("succ", false), rec);
 		expr->sexp = sexp;
@@ -65,7 +65,7 @@ PF_Expr *PF_expr_num(int num, bool marked) {
 
 PF_Expr *PF_expr_var(PF_Ident var, bool marked) {
 	PF_Expr *expr = malloc(sizeof(PF_Expr));
-	expr->kind = PF_EXPR_VAR;
+	expr->tag = PF_EXPR_VAR;
 	expr->var = var;
 	expr->marked = marked;
 	return expr;
@@ -73,7 +73,7 @@ PF_Expr *PF_expr_var(PF_Ident var, bool marked) {
 
 PF_Expr *PF_expr_sexp(PF_ExprList *sexp, bool marked) {
 	PF_Expr *expr = malloc(sizeof(PF_Expr));
-	expr->kind = PF_EXPR_SEXP;
+	expr->tag = PF_EXPR_SEXP;
 	expr->sexp = sexp;
 	expr->marked = marked;
 	return expr;
@@ -88,7 +88,7 @@ PF_ExprList *PF_expr_list(PF_Expr *expr, PF_ExprList *tail) {
 
 PF_Proof PF_proof_direct(PF_Expr *start, PF_ProofNodeTransform *transform) {
 	return (PF_Proof) {
-		.kind = PF_PROOF_DIRECT,
+		.tag = PF_PROOF_DIRECT,
 		.direct = {
 			.start = start,
 			.transform = transform,

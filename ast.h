@@ -15,7 +15,7 @@ typedef struct {
 		PF_EXPR_ZERO,
 		PF_EXPR_VAR,
 		PF_EXPR_SEXP,
-	} kind;
+	} tag;
 	union {
 		PF_Ident var;
 		PF_ExprList *sexp;
@@ -45,7 +45,7 @@ struct _PF_ProofNodeTransform {
 typedef struct {
 	enum {
 		PF_PROOF_DIRECT,
-	} kind;
+	} tag;
 	union {
 		struct {
 			PF_Expr *start;
@@ -73,7 +73,7 @@ typedef struct {
 	enum {
 		PF_TOPLEVEL_AXIOM,
 		PF_TOPLEVEL_THEOREM,
-	} kind;
+	} tag;
 	union {
 		PF_Axiom axiom;
 		PF_Theorem theorem;
