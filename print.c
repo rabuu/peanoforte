@@ -46,12 +46,7 @@ void PF_print_expr(PF_Expr *expr) {
 }
 
 void print_axiom(PF_Axiom *axiom) {
-	if (!axiom) {
-		printf("ERROR: Axiom is NULL\n");
-		exit(1);
-	}
-
-	printf("\nAXIOM %s ", axiom->name);
+	printf("AXIOM %s ", axiom->name);
 	if (axiom->params) printf("<");
 	_print_ident_list(axiom->params);
 	if (axiom->params) printf("> ");
@@ -61,19 +56,8 @@ void print_axiom(PF_Axiom *axiom) {
 	printf("\n");
 }
 
-void print_axioms(PF_AxiomList *axioms) {
-	if (!axioms) return;
-	print_axiom(axioms->head);
-	print_axioms(axioms->tail);
-}
-
 void print_theorem(PF_Theorem *theorem) {
-	if (!theorem) {
-		printf("ERROR: Theorem is NULL\n");
-		exit(1);
-	}
-
-	printf("\nTHEOREM %s ", theorem->name);
+	printf("THEOREM %s ", theorem->name);
 	if (theorem->params) printf("<");
 	_print_ident_list(theorem->params);
 	if (theorem->params) printf("> ");
@@ -83,18 +67,23 @@ void print_theorem(PF_Theorem *theorem) {
 	printf("\n");
 }
 
-void print_theorems(PF_TheoremList *theorems) {
-	if (!theorems) return;
-	print_theorem(theorems->head);
-	print_theorems(theorems->tail);
-}
-
-void PF_print_program(PF_Program *prog) {
-	if (!prog) {
-		printf("ERROR: Program is NULL\n");
+void print_toplevel(PF_TopLevel *toplevel) {
+	if (!toplevel) {
+		printf("ERROR: Toplevel is NULL\n");
 		exit(1);
 	}
 
-	print_axioms(prog->axioms);
-	print_theorems(prog->theorems);
+	switch (toplevel->kind) {
+		case PF_TOPLEVEL_AXIOM: print_axiom(&toplevel->axiom); break;
+		case PF_TOPLEVEL_THEOREM: print_theorem(&toplevel->theorem); break;
+	}
+}
+
+void PF_print_program(PF_Program *program) {
+	if (!program) return;
+	print_toplevel(&program->toplevel);
+	if (program->rest) {
+		printf("\n");
+		PF_print_program(program->rest);
+	}
 }

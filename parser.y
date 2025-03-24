@@ -11,16 +11,15 @@
 
 %union {
    int num;
+   PF_Program *program;
+   PF_TopLevel toplevel;
+   PF_Axiom axiom;
+   PF_Theorem theorem;
    PF_Ident ident;
    PF_IdentList *ident_list;
-   PF_Program *program;
-   PF_Axiom *axiom;
-   PF_AxiomList *axiom_list;
-   PF_Theorem *theorem;
-   PF_TheoremList *theorem_list;
    PF_Expr *expr;
    PF_ExprList *expr_list;
-   PF_Proof *proof;
+   PF_Proof proof;
 }
 
 %define parse.error verbose
@@ -36,10 +35,9 @@
 %token <ident> IDENT
 
 %type <program> program;
-%type <axiom_list> axiom_section;
-%type <axiom> axiom_definition;
-%type <theorem_list> theorem_section;
-%type <theorem> theorem_definition;
+%type <toplevel> toplevel;
+%type <axiom> axiom;
+%type <theorem> theorem;
 %type <ident_list> parameters;
 %type <proof> proof;
 %type <expr> expr;
@@ -47,24 +45,21 @@
 
 %%
 program:
-	axiom_section theorem_section { $$ = PF_program($1, $2); PF_ast = $$; };
-
-axiom_section:
 	/* empty */ { $$ = nullptr; }
-|   axiom_definition axiom_section { $$ = PF_axiom_list($1, $2); };
+|   toplevel program { $$ = PF_program($1, $2); PF_ast = $$; };
 
-axiom_definition:
+toplevel:
+	axiom { $$ = PF_toplevel_axiom($1); }
+|   theorem { $$ = PF_toplevel_theorem($1); };
+
+axiom:
 	KW_AXIOM IDENT expr EQUALS expr {
 		$$ = PF_axiom($2, nullptr, $3, $5);
 }|  KW_AXIOM IDENT ANGLE_OPEN parameters ANGLE_CLOSE expr EQUALS expr {
 		$$ = PF_axiom($2, $4, $6, $8);
 };
 
-theorem_section:
-	/* empty */ { $$ = nullptr; }
-|   theorem_definition theorem_section { $$ = PF_theorem_list($1, $2); };
-
-theorem_definition:
+theorem:
 	KW_THEOREM IDENT expr EQUALS expr proof {
 		$$ = PF_theorem($2, nullptr, $3, $5, $6);
 }|  KW_THEOREM IDENT ANGLE_OPEN parameters ANGLE_CLOSE expr EQUALS expr proof {
@@ -75,7 +70,7 @@ parameters:
 	/* empty */ { $$ = nullptr; }
 |   IDENT parameters { $$ = PF_ident_list($1, $2); };
 
-proof: /* empty */ { $$ = nullptr; }
+proof: CURLY_OPEN CURLY_CLOSE { $$ = PF_proof_direct(nullptr, nullptr); }
 
 expr:
 	NUMBER { $$ = PF_expr_num($1); }

@@ -2,11 +2,25 @@
 
 #include <stdlib.h>
 
-PF_Program *PF_program(PF_AxiomList *axioms, PF_TheoremList *theorems) {
-	PF_Program *prog = malloc(sizeof(PF_Program));
-	prog->axioms = axioms;
-	prog->theorems = theorems;
-	return prog;
+PF_Program *PF_program(PF_TopLevel toplevel, PF_Program *rest) {
+	PF_Program *program = malloc(sizeof(PF_Program));
+	program->toplevel = toplevel;
+	program->rest = rest;
+	return program;
+}
+
+PF_TopLevel PF_toplevel_axiom(PF_Axiom axiom) {
+	return (PF_TopLevel) {
+		.kind = PF_TOPLEVEL_AXIOM,
+		.axiom = axiom,
+	};
+}
+
+PF_TopLevel PF_toplevel_theorem(PF_Theorem theorem) {
+	return (PF_TopLevel) {
+		.kind = PF_TOPLEVEL_THEOREM,
+		.theorem = theorem,
+	};
 }
 
 PF_IdentList *PF_ident_list(PF_Ident ident, PF_IdentList *tail) {
@@ -16,37 +30,23 @@ PF_IdentList *PF_ident_list(PF_Ident ident, PF_IdentList *tail) {
 	return idents;
 }
 
-PF_Axiom *PF_axiom(PF_Ident name, PF_IdentList *params, PF_Expr *lhs, PF_Expr *rhs) {
-	PF_Axiom *axiom = malloc(sizeof(PF_Axiom));
-	axiom->name = name;
-	axiom->params = params;
-	axiom->lhs = lhs;
-	axiom->rhs = rhs;
-	return axiom;
+PF_Axiom PF_axiom(PF_Ident name, PF_IdentList *params, PF_Expr *lhs, PF_Expr *rhs) {
+	return (PF_Axiom) {
+		.name = name,
+		.params = params,
+		.lhs = lhs,
+		.rhs = rhs,
+	};
 }
 
-PF_AxiomList *PF_axiom_list(PF_Axiom *axiom, PF_AxiomList *tail) {
-	PF_AxiomList *axioms = malloc(sizeof(PF_AxiomList));
-	axioms->head = axiom;
-	axioms->tail = tail;
-	return axioms;
-}
-
-PF_Theorem *PF_theorem(PF_Ident name, PF_IdentList *params, PF_Expr *lhs, PF_Expr *rhs, PF_Proof *proof) {
-	PF_Theorem *theorem = malloc(sizeof(PF_Theorem));
-	theorem->name = name;
-	theorem->params = params;
-	theorem->lhs = lhs;
-	theorem->rhs = rhs;
-	theorem->proof = proof;
-	return theorem;
-}
-
-PF_TheoremList *PF_theorem_list(PF_Theorem *theorem, PF_TheoremList *tail) {
-	PF_TheoremList *theorems = malloc(sizeof(PF_TheoremList));
-	theorems->head = theorem;
-	theorems->tail = tail;
-	return theorems;
+PF_Theorem PF_theorem(PF_Ident name, PF_IdentList *params, PF_Expr *lhs, PF_Expr *rhs, PF_Proof proof) {
+	return (PF_Theorem) {
+		.name = name,
+		.params = params,
+		.lhs = lhs,
+		.rhs = rhs,
+		.proof = proof,
+	};
 }
 
 PF_Expr *PF_expr_num(int num) {
@@ -83,12 +83,14 @@ PF_ExprList *PF_expr_list(PF_Expr *expr, PF_ExprList *tail) {
 	return exprs;
 }
 
-PF_Proof *PF_proof_direct(PF_Expr *start, PF_ProofNodeTransform *transform) {
-	PF_Proof *proof = malloc(sizeof(PF_Proof));
-	proof->kind = PF_PROOF_DIRECT;
-	proof->direct.start = start;
-	proof->direct.transform = transform;
-	return proof;
+PF_Proof PF_proof_direct(PF_Expr *start, PF_ProofNodeTransform *transform) {
+	return (PF_Proof) {
+		.kind = PF_PROOF_DIRECT,
+		.direct = {
+			.start = start,
+			.transform = transform,
+		},
+	};
 }
 
 PF_ProofNodeExpr *PF_proof_node_expr(PF_Expr *expr, PF_ProofNodeTransform *transform) {
