@@ -1,5 +1,7 @@
 #include "ast.h"
+#include "print.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 
 Program *program(TopLevel toplevel, Program *rest) {
@@ -99,6 +101,46 @@ ExprList *expr_list(Expr *expr, ExprList *tail) {
 	exprs->head = expr;
 	exprs->tail = tail;
 	return exprs;
+}
+
+void _expr_assert_not_marked(ExprList *list) {
+	if (!list) return;
+	if (expr_find_marked(list->head)) {
+		printf("** ERROR ** Only one subexpression can be marked: ");
+		print_expr(list->head);
+		exit(1);
+	}
+	return _expr_assert_not_marked(list->tail);
+}
+
+Expr *_expr_list_find_marked(ExprList *list) {
+	if (!list) return nullptr;
+	if (expr_find_marked(list->head)) {
+		_expr_assert_not_marked(list->tail);
+		return list->head;
+	}
+	return _expr_list_find_marked(list->tail);
+}
+
+Expr *expr_find_marked(Expr *expr) {
+	if (!expr) return nullptr;
+
+	Expr *found = nullptr;
+	if (expr->marked) found = expr;
+
+	switch (expr->tag) {
+		case EXPR_ZERO:
+		case EXPR_VAR:
+			break;
+		case EXPR_SEXP:
+			if (found)
+				_expr_assert_not_marked(expr->sexp);
+			else
+				found = _expr_list_find_marked(expr->sexp);
+			break;
+	}
+
+	return found;
 }
 
 Proof proof_direct(Expr *start, ProofNodeTransform *transform) {
