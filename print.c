@@ -16,7 +16,7 @@ void _print_ident_list(PF_IdentList *idents) {
 
 void _print_sexp_inner(PF_ExprList *sexp) {
 	if (!sexp) return;
-	_PF_print_expr(sexp->expr);
+	_PF_print_expr(sexp->head);
 	if (sexp->tail) printf(" ");
 	_print_sexp_inner(sexp->tail);
 }
@@ -63,7 +63,7 @@ void print_axiom(PF_Axiom *axiom) {
 
 void print_axioms(PF_AxiomList *axioms) {
 	if (!axioms) return;
-	print_axiom(axioms->axiom);
+	print_axiom(axioms->head);
 	if (axioms->tail) printf("\n");
 	print_axioms(axioms->tail);
 }

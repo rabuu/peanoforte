@@ -1,6 +1,12 @@
 #ifndef AST_H
 #define AST_H
 
+#define GENERATE_LIST_TYPE(typ) \
+	struct _##typ##List { \
+		typ *head; \
+		struct _##typ##List *tail; \
+	}
+
 typedef char* PF_Ident;
 
 typedef struct _PF_Program PF_Program;
@@ -25,11 +31,7 @@ struct _PF_Axiom {
 	PF_Expr *lhs;
 	PF_Expr *rhs;
 };
-
-struct _PF_AxiomList {
-	PF_Axiom *axiom;
-	PF_AxiomList *tail;
-};
+GENERATE_LIST_TYPE(PF_Axiom);
 
 struct _PF_Expr {
 	enum {
@@ -42,11 +44,7 @@ struct _PF_Expr {
 		PF_ExprList *sexp;
 	};
 };
-
-struct _PF_ExprList {
-	PF_Expr *expr;
-	PF_ExprList *tail;
-};
+GENERATE_LIST_TYPE(PF_Expr);
 
 PF_Program *PF_program(PF_AxiomList *axioms);
 PF_IdentList *PF_ident_list(PF_Ident ident, PF_IdentList *tail);
