@@ -51,10 +51,10 @@ void print_axiom(PF_Axiom *axiom) {
 		exit(1);
 	}
 
-	printf("AXIOM %s", axiom->name);
-	if (axiom->params) printf(" WITH ");
+	printf("AXIOM %s ", axiom->name);
+	if (axiom->params) printf("<");
 	_print_ident_list(axiom->params);
-	printf(": ");
+	if (axiom->params) printf("> ");
 	_PF_print_expr(axiom->lhs);
 	printf(" = ");
 	_PF_print_expr(axiom->rhs);

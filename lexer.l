@@ -6,7 +6,7 @@
 %option never-interactive
 
 DIGIT [0-9]
-IDENT [a-zA-Z][a-zA-Z0-9-]*
+IDENT [_]?[a-zA-Z][-a-zA-Z0-9]*
 
 %%
 
@@ -26,8 +26,8 @@ IDENT [a-zA-Z][a-zA-Z0-9-]*
 "]" { return BRACKET_CLOSE; }
 "{" { return CURLY_OPEN; }
 "}" { return CURLY_CLOSE; }
-
-":" { return COLON; }
+"<" { return ANGLE_OPEN; }
+">" { return ANGLE_CLOSE; }
 "=" { return EQUALS; }
 
 [ \t\n]+ { }
@@ -44,6 +44,11 @@ IDENT [a-zA-Z][a-zA-Z0-9-]*
 	str[len] = '\0';
 	yylval.ident = str;
 	return IDENT;
+}
+
+. {
+	printf("** ERROR ** illegal symbol: %s\n", yytext);
+	exit(1);
 }
 
 %%
