@@ -47,7 +47,7 @@ IDENT [_]?[a-zA-Z][-a-zA-Z0-9]*
 }
 
 . {
-	printf("** ERROR ** illegal symbol: %s\n", yytext);
+	printf("** LEX ERROR ** illegal symbol: %s\n", yytext);
 	exit(1);
 }
 

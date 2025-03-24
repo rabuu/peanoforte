@@ -23,7 +23,6 @@
 }
 
 %define parse.error verbose
-%locations
 
 %start program
 
@@ -95,5 +94,5 @@ int PF_parse(char *filename, PF_Program **ast) {
 }
 
 void yyerror(const char *msg) {
-   printf("** ERROR ** line %d: %s\n", yylloc.first_line, msg);
+   printf("** PARSE ERROR ** %s\n", msg);
 }
