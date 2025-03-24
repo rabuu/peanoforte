@@ -11,7 +11,7 @@ void print_node_transform(ProofNodeTransform *transform);
 void _print_ident_list(IdentList *idents) {
 	if (!idents) return;
 	printf("%s", idents->ident);
-	if (idents->tail) printf(", ");
+	if (idents->tail) printf(" ");
 	_print_ident_list(idents->tail);
 }
 
