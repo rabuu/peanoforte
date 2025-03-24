@@ -3,7 +3,7 @@
 
 #include "ast.h"
 
-void PF_print_program(PF_Program *program);
-void PF_print_expr(PF_Expr *expr);
+void print_program(Program *program);
+void print_expr(Expr *expr);
 
 #endif // !PRINT_H

@@ -1,113 +1,113 @@
 #ifndef AST_H
 #define AST_H
 
-typedef char* PF_Ident;
+typedef char* Ident;
 
-typedef struct _PF_IdentList {
-	PF_Ident ident;
-	struct _PF_IdentList *tail;
-} PF_IdentList;
+typedef struct _IdentList {
+	Ident ident;
+	struct _IdentList *tail;
+} IdentList;
 
-typedef struct _PF_ExprList PF_ExprList;
+typedef struct _ExprList ExprList;
 
 typedef struct {
 	enum {
-		PF_EXPR_ZERO,
-		PF_EXPR_VAR,
-		PF_EXPR_SEXP,
+		EXPR_ZERO,
+		EXPR_VAR,
+		EXPR_SEXP,
 	} tag;
 	union {
-		PF_Ident var;
-		PF_ExprList *sexp;
+		Ident var;
+		ExprList *sexp;
 	};
 	bool marked;
-} PF_Expr;
+} Expr;
 
-struct _PF_ExprList {
-	PF_Expr *head;
-	struct _PF_ExprList *tail;
+struct _ExprList {
+	Expr *head;
+	struct _ExprList *tail;
 };
 
-typedef struct _PF_ProofNodeExpr PF_ProofNodeExpr;
-typedef struct _PF_ProofNodeTransform PF_ProofNodeTransform;
+typedef struct _ProofNodeExpr ProofNodeExpr;
+typedef struct _ProofNodeTransform ProofNodeTransform;
 
-struct _PF_ProofNodeExpr {
-	PF_Expr *expr;
-	PF_ProofNodeTransform *transform;
+struct _ProofNodeExpr {
+	Expr *expr;
+	ProofNodeTransform *transform;
 };
 
-struct _PF_ProofNodeTransform {
-	PF_Ident name;
+struct _ProofNodeTransform {
+	Ident name;
 	bool reversed;
-	PF_ProofNodeExpr *expr;
+	ProofNodeExpr *expr;
 };
 
 typedef struct {
 	enum {
-		PF_PROOF_DIRECT,
+		PROOF_DIRECT,
 	} tag;
 	union {
 		struct {
-			PF_Expr *start;
-			PF_ProofNodeTransform *transform;
+			Expr *start;
+			ProofNodeTransform *transform;
 		} direct;
 	};
-} PF_Proof;
+} Proof;
 
 typedef struct {
-	PF_Ident name;
-	PF_IdentList *params;
-	PF_Expr *lhs;
-	PF_Expr *rhs;
-} PF_Axiom;
+	Ident name;
+	IdentList *params;
+	Expr *lhs;
+	Expr *rhs;
+} Axiom;
 
 typedef struct {
-	PF_Ident name;
-	PF_IdentList *params;
-	PF_Expr *lhs;
-	PF_Expr *rhs;
-	PF_Proof proof;
-} PF_Theorem;
+	Ident name;
+	IdentList *params;
+	Expr *lhs;
+	Expr *rhs;
+	Proof proof;
+} Theorem;
 
 typedef struct {
-	PF_Expr *lhs;
-	PF_Expr *rhs;
-	PF_Proof proof;
-} PF_Example;
+	Expr *lhs;
+	Expr *rhs;
+	Proof proof;
+} Example;
 
 typedef struct {
 	enum {
-		PF_TOPLEVEL_AXIOM,
-		PF_TOPLEVEL_THEOREM,
-		PF_TOPLEVEL_EXAMPLE,
+		TOPLEVEL_AXIOM,
+		TOPLEVEL_THEOREM,
+		TOPLEVEL_EXAMPLE,
 	} tag;
 	union {
-		PF_Axiom axiom;
-		PF_Theorem theorem;
-		PF_Example example;
+		Axiom axiom;
+		Theorem theorem;
+		Example example;
 	};
-} PF_TopLevel;
+} TopLevel;
 
-typedef struct _PF_Program {
-	PF_TopLevel toplevel;
-	struct _PF_Program *rest;
-} PF_Program;
+typedef struct _Program {
+	TopLevel toplevel;
+	struct _Program *rest;
+} Program;
 
 
-PF_Program *PF_program(PF_TopLevel toplevel, PF_Program *rest);
-PF_TopLevel PF_toplevel_axiom(PF_Axiom axiom);
-PF_TopLevel PF_toplevel_theorem(PF_Theorem theorem);
-PF_TopLevel PF_toplevel_example(PF_Example example);
-PF_IdentList *PF_ident_list(PF_Ident ident, PF_IdentList *tail);
-PF_Axiom PF_axiom(PF_Ident name, PF_IdentList *params, PF_Expr *lhs, PF_Expr *rhs);
-PF_Theorem PF_theorem(PF_Ident name, PF_IdentList *params, PF_Expr *lhs, PF_Expr *rhs, PF_Proof proof);
-PF_Example PF_example(PF_Expr *lhs, PF_Expr *rhs, PF_Proof proof);
-PF_Expr *PF_expr_num(int num, bool marked);
-PF_Expr *PF_expr_var(PF_Ident var, bool marked);
-PF_Expr *PF_expr_sexp(PF_ExprList *sexp, bool marked);
-PF_ExprList *PF_expr_list(PF_Expr *expr, PF_ExprList *tail);
-PF_Proof PF_proof_direct(PF_Expr *start, PF_ProofNodeTransform *transform);
-PF_ProofNodeExpr *PF_proof_node_expr(PF_Expr *expr, PF_ProofNodeTransform *transform);
-PF_ProofNodeTransform *PF_proof_node_transform(PF_Ident name, bool reversed, PF_ProofNodeExpr *expr);
+Program *program(TopLevel toplevel, Program *rest);
+TopLevel toplevel_axiom(Axiom axiom);
+TopLevel toplevel_theorem(Theorem theorem);
+TopLevel toplevel_example(Example example);
+IdentList *ident_list(Ident ident, IdentList *tail);
+Axiom axiom(Ident name, IdentList *params, Expr *lhs, Expr *rhs);
+Theorem theorem(Ident name, IdentList *params, Expr *lhs, Expr *rhs, Proof proof);
+Example example(Expr *lhs, Expr *rhs, Proof proof);
+Expr *expr_num(int num, bool marked);
+Expr *expr_var(Ident var, bool marked);
+Expr *expr_sexp(ExprList *sexp, bool marked);
+ExprList *expr_list(Expr *expr, ExprList *tail);
+Proof proof_direct(Expr *start, ProofNodeTransform *transform);
+ProofNodeExpr *proof_node_expr(Expr *expr, ProofNodeTransform *transform);
+ProofNodeTransform *proof_node_transform(Ident name, bool reversed, ProofNodeExpr *expr);
 
 #endif // !AST_H
