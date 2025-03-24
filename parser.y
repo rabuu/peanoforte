@@ -14,10 +14,13 @@
    PF_Ident ident;
    PF_IdentList *ident_list;
    PF_Program *program;
-   PF_AxiomList *axiom_list;
    PF_Axiom *axiom;
+   PF_AxiomList *axiom_list;
+   PF_Theorem *theorem;
+   PF_TheoremList *theorem_list;
    PF_Expr *expr;
    PF_ExprList *expr_list;
+   PF_Proof *proof;
 }
 
 %define parse.error verbose
@@ -35,13 +38,16 @@
 %type <program> program;
 %type <axiom_list> axiom_section;
 %type <axiom> axiom_definition;
+%type <theorem_list> theorem_section;
+%type <theorem> theorem_definition;
 %type <ident_list> parameters;
+%type <proof> proof;
 %type <expr> expr;
 %type <expr_list> expr_list;
 
 %%
 program:
-	axiom_section { $$ = PF_program($1); PF_ast = $$; };
+	axiom_section theorem_section { $$ = PF_program($1, $2); PF_ast = $$; };
 
 axiom_section:
 	/* empty */ { $$ = nullptr; }
@@ -54,9 +60,22 @@ axiom_definition:
 		$$ = PF_axiom($2, $4, $6, $8);
 };
 
+theorem_section:
+	/* empty */ { $$ = nullptr; }
+|   theorem_definition theorem_section { $$ = PF_theorem_list($1, $2); };
+
+theorem_definition:
+	KW_THEOREM IDENT expr EQUALS expr proof {
+		$$ = PF_theorem($2, nullptr, $3, $5, $6);
+}|  KW_THEOREM IDENT ANGLE_OPEN parameters ANGLE_CLOSE expr EQUALS expr proof {
+		$$ = PF_theorem($2, $4, $6, $8, $9);
+};
+
 parameters:
 	/* empty */ { $$ = nullptr; }
 |   IDENT parameters { $$ = PF_ident_list($1, $2); };
+
+proof: /* empty */ { $$ = nullptr; }
 
 expr:
 	NUMBER { $$ = PF_expr_num($1); }
