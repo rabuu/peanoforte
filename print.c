@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 /* forward declarations */
-void _PF_print_expr(PF_Expr *expr);
+void _print_expr(PF_Expr *expr);
 void print_node_transform(PF_ProofNodeTransform *transform);
 
 void _print_ident_list(PF_IdentList *idents) {
@@ -17,32 +17,42 @@ void _print_ident_list(PF_IdentList *idents) {
 
 void _print_sexp_inner(PF_ExprList *sexp) {
 	if (!sexp) return;
-	_PF_print_expr(sexp->head);
+	_print_expr(sexp->head);
 	if (sexp->tail) printf(" ");
 	_print_sexp_inner(sexp->tail);
 }
 
-void _print_sexp(PF_ExprList *sexp) {
-	printf("(");
+void _print_sexp(PF_ExprList *sexp, bool marked) {
+	printf(marked ? "[" : "(");
 	_print_sexp_inner(sexp);
-	printf(")");
+	printf(marked ? "]" : ")");
 }
 
-void _PF_print_expr(PF_Expr *expr) {
+void _print_expr(PF_Expr *expr) {
 	if (!expr) {
 		printf("ERROR: Expr is NULL\n");
 		exit(1);
 	}
 
 	switch (expr->kind) {
-		case PF_EXPR_ZERO: printf("0"); break;
-		case PF_EXPR_VAR: printf("%s", expr->var); break;
-		case PF_EXPR_SEXP: _print_sexp(expr->sexp); break;
+		case PF_EXPR_ZERO:
+			expr->marked
+				? printf("[0]")
+				: printf("0");
+			break;
+		case PF_EXPR_VAR:
+			expr->marked
+				? printf("[%s]", expr->var)
+				: printf("%s", expr->var);
+			break;
+		case PF_EXPR_SEXP:
+			_print_sexp(expr->sexp, expr->marked);
+			break;
 	}
 }
 
 void PF_print_expr(PF_Expr *expr) {
-	_PF_print_expr(expr);
+	_print_expr(expr);
 	printf("\n");
 }
 
@@ -63,7 +73,7 @@ void print_node_transform(PF_ProofNodeTransform *transform) {
 
 void print_proof_direct(PF_Expr *start, PF_ProofNodeTransform *initial_transform) {
 	printf("START: ");
-	if (start) _PF_print_expr(start); else printf("IMPLIED");
+	if (start) _print_expr(start); else printf("IMPLIED");
 	printf("\n");
 	print_node_transform(initial_transform);
 }
@@ -81,7 +91,7 @@ void print_axiom(PF_Axiom *axiom) {
 	if (axiom->params) printf("<");
 	_print_ident_list(axiom->params);
 	if (axiom->params) printf("> ");
-	_PF_print_expr(axiom->lhs);
+	_print_expr(axiom->lhs);
 	printf(" = ");
 	PF_print_expr(axiom->rhs);
 }
@@ -91,7 +101,7 @@ void print_theorem(PF_Theorem *theorem) {
 	if (theorem->params) printf("<");
 	_print_ident_list(theorem->params);
 	if (theorem->params) printf("> ");
-	_PF_print_expr(theorem->lhs);
+	_print_expr(theorem->lhs);
 	printf(" = ");
 	PF_print_expr(theorem->rhs);
 	print_proof(&theorem->proof);

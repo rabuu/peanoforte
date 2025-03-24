@@ -20,6 +20,7 @@ typedef struct {
 		PF_Ident var;
 		PF_ExprList *sexp;
 	};
+	bool marked;
 } PF_Expr;
 
 struct _PF_ExprList {
@@ -91,9 +92,9 @@ PF_TopLevel PF_toplevel_theorem(PF_Theorem theorem);
 PF_IdentList *PF_ident_list(PF_Ident ident, PF_IdentList *tail);
 PF_Axiom PF_axiom(PF_Ident name, PF_IdentList *params, PF_Expr *lhs, PF_Expr *rhs);
 PF_Theorem PF_theorem(PF_Ident name, PF_IdentList *params, PF_Expr *lhs, PF_Expr *rhs, PF_Proof proof);
-PF_Expr *PF_expr_num(int num);
-PF_Expr *PF_expr_var(PF_Ident var);
-PF_Expr *PF_expr_sexp(PF_ExprList *sexp);
+PF_Expr *PF_expr_num(int num, bool marked);
+PF_Expr *PF_expr_var(PF_Ident var, bool marked);
+PF_Expr *PF_expr_sexp(PF_ExprList *sexp, bool marked);
 PF_ExprList *PF_expr_list(PF_Expr *expr, PF_ExprList *tail);
 PF_Proof PF_proof_direct(PF_Expr *start, PF_ProofNodeTransform *transform);
 PF_ProofNodeExpr *PF_proof_node_expr(PF_Expr *expr, PF_ProofNodeTransform *transform);

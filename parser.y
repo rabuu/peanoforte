@@ -105,13 +105,16 @@ proof_node_expr:
 ;
 
 expr:
-  NUMBER { $$ = PF_expr_num($1); }
-| IDENT { $$ = PF_expr_var($1); }
-| PAREN_OPEN expr_list PAREN_CLOSE { $$ = PF_expr_sexp($2); }
+  NUMBER { $$ = PF_expr_num($1, false); }
+| BRACKET_OPEN NUMBER BRACKET_CLOSE { $$ = PF_expr_num($2, true); }
+| IDENT { $$ = PF_expr_var($1, false); }
+| BRACKET_OPEN IDENT BRACKET_CLOSE { $$ = PF_expr_var($2, true); }
+| PAREN_OPEN expr_list PAREN_CLOSE { $$ = PF_expr_sexp($2, false); }
+| BRACKET_OPEN expr_list BRACKET_CLOSE { $$ = PF_expr_sexp($2, true); }
 ;
 
 expr_list:
-  expr { $$ = PF_expr_list($1, nullptr); }
+  expr expr { $$ = PF_expr_list($1, PF_expr_list($2, nullptr)); }
 | expr expr_list { $$ = PF_expr_list($1, $2); }
 ;
 %%
