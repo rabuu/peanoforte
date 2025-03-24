@@ -51,7 +51,7 @@ void print_axiom(PF_Axiom *axiom) {
 		exit(1);
 	}
 
-	printf("AXIOM %s ", axiom->name);
+	printf("\nAXIOM %s ", axiom->name);
 	if (axiom->params) printf("<");
 	_print_ident_list(axiom->params);
 	if (axiom->params) printf("> ");
@@ -64,8 +64,29 @@ void print_axiom(PF_Axiom *axiom) {
 void print_axioms(PF_AxiomList *axioms) {
 	if (!axioms) return;
 	print_axiom(axioms->head);
-	if (axioms->tail) printf("\n");
 	print_axioms(axioms->tail);
+}
+
+void print_theorem(PF_Theorem *theorem) {
+	if (!theorem) {
+		printf("ERROR: Theorem is NULL\n");
+		exit(1);
+	}
+
+	printf("\nTHEOREM %s ", theorem->name);
+	if (theorem->params) printf("<");
+	_print_ident_list(theorem->params);
+	if (theorem->params) printf("> ");
+	_PF_print_expr(theorem->lhs);
+	printf(" = ");
+	_PF_print_expr(theorem->rhs);
+	printf("\n");
+}
+
+void print_theorems(PF_TheoremList *theorems) {
+	if (!theorems) return;
+	print_theorem(theorems->head);
+	print_theorems(theorems->tail);
 }
 
 void PF_print_program(PF_Program *prog) {
@@ -75,4 +96,5 @@ void PF_print_program(PF_Program *prog) {
 	}
 
 	print_axioms(prog->axioms);
+	print_theorems(prog->theorems);
 }
