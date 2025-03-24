@@ -6,6 +6,7 @@
 
 /* forward declarations */
 void _PF_print_expr(PF_Expr *expr);
+void print_node_transform(PF_ProofNodeTransform *transform);
 
 void _print_ident_list(PF_IdentList *idents) {
 	if (!idents) return;
@@ -45,6 +46,36 @@ void PF_print_expr(PF_Expr *expr) {
 	printf("\n");
 }
 
+void print_node_expr(PF_ProofNodeExpr *expr) {
+	if (!expr) return;
+	printf("EXPR: ");
+	PF_print_expr(expr->expr);
+	if (expr->transform) print_node_transform(expr->transform);
+}
+
+void print_node_transform(PF_ProofNodeTransform *transform) {
+	if (!transform) return;
+	printf("TRANSFORM");
+	if (transform->reversed) printf(" (REVERSED)");
+	printf(": %s\n", transform->name);
+	if (transform->expr) print_node_expr(transform->expr);
+}
+
+void print_proof_direct(PF_Expr *start, PF_ProofNodeTransform *initial_transform) {
+	printf("START: ");
+	if (start) _PF_print_expr(start); else printf("IMPLIED");
+	printf("\n");
+	print_node_transform(initial_transform);
+}
+
+void print_proof(PF_Proof *proof) {
+	switch (proof->kind) {
+		case PF_PROOF_DIRECT:
+			print_proof_direct(proof->direct.start, proof->direct.transform);
+			break;
+	}
+}
+
 void print_axiom(PF_Axiom *axiom) {
 	printf("AXIOM %s ", axiom->name);
 	if (axiom->params) printf("<");
@@ -52,8 +83,7 @@ void print_axiom(PF_Axiom *axiom) {
 	if (axiom->params) printf("> ");
 	_PF_print_expr(axiom->lhs);
 	printf(" = ");
-	_PF_print_expr(axiom->rhs);
-	printf("\n");
+	PF_print_expr(axiom->rhs);
 }
 
 void print_theorem(PF_Theorem *theorem) {
@@ -63,8 +93,8 @@ void print_theorem(PF_Theorem *theorem) {
 	if (theorem->params) printf("> ");
 	_PF_print_expr(theorem->lhs);
 	printf(" = ");
-	_PF_print_expr(theorem->rhs);
-	printf("\n");
+	PF_print_expr(theorem->rhs);
+	print_proof(&theorem->proof);
 }
 
 void print_toplevel(PF_TopLevel *toplevel) {
