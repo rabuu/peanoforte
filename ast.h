@@ -1,12 +1,6 @@
 #ifndef AST_H
 #define AST_H
 
-#define GENERATE_LIST_TYPE(typ) \
-	struct _##typ##List { \
-		typ *head; \
-		struct _##typ##List *tail; \
-	}
-
 typedef char* PF_Ident;
 
 typedef struct _PF_IdentList {
