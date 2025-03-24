@@ -15,6 +15,7 @@
    PF_TopLevel toplevel;
    PF_Axiom axiom;
    PF_Theorem theorem;
+   PF_Example example;
    PF_Ident ident;
    PF_IdentList *ident_list;
    PF_Expr *expr;
@@ -39,6 +40,7 @@
 %type <toplevel> toplevel;
 %type <axiom> axiom;
 %type <theorem> theorem;
+%type <example> example;
 %type <ident_list> parameters;
 %type <proof> proof;
 %type <proof_node_transform> proof_node_transform;
@@ -55,6 +57,7 @@ program:
 toplevel:
   axiom { $$ = PF_toplevel_axiom($1); }
 | theorem { $$ = PF_toplevel_theorem($1); }
+| example { $$ = PF_toplevel_example($1); }
 ;
 
 axiom:
@@ -78,6 +81,12 @@ theorem:
 parameters:
   /* empty */ { $$ = nullptr; }
 | IDENT parameters { $$ = PF_ident_list($1, $2); }
+;
+
+example:
+  KW_EXAMPLE expr EQUALS expr proof {
+    $$ = PF_example($2, $4, $5);
+}
 ;
 
 proof:

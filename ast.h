@@ -70,13 +70,21 @@ typedef struct {
 } PF_Theorem;
 
 typedef struct {
+	PF_Expr *lhs;
+	PF_Expr *rhs;
+	PF_Proof proof;
+} PF_Example;
+
+typedef struct {
 	enum {
 		PF_TOPLEVEL_AXIOM,
 		PF_TOPLEVEL_THEOREM,
+		PF_TOPLEVEL_EXAMPLE,
 	} tag;
 	union {
 		PF_Axiom axiom;
 		PF_Theorem theorem;
+		PF_Example example;
 	};
 } PF_TopLevel;
 
@@ -89,9 +97,11 @@ typedef struct _PF_Program {
 PF_Program *PF_program(PF_TopLevel toplevel, PF_Program *rest);
 PF_TopLevel PF_toplevel_axiom(PF_Axiom axiom);
 PF_TopLevel PF_toplevel_theorem(PF_Theorem theorem);
+PF_TopLevel PF_toplevel_example(PF_Example example);
 PF_IdentList *PF_ident_list(PF_Ident ident, PF_IdentList *tail);
 PF_Axiom PF_axiom(PF_Ident name, PF_IdentList *params, PF_Expr *lhs, PF_Expr *rhs);
 PF_Theorem PF_theorem(PF_Ident name, PF_IdentList *params, PF_Expr *lhs, PF_Expr *rhs, PF_Proof proof);
+PF_Example PF_example(PF_Expr *lhs, PF_Expr *rhs, PF_Proof proof);
 PF_Expr *PF_expr_num(int num, bool marked);
 PF_Expr *PF_expr_var(PF_Ident var, bool marked);
 PF_Expr *PF_expr_sexp(PF_ExprList *sexp, bool marked);

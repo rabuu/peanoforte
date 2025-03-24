@@ -23,6 +23,13 @@ PF_TopLevel PF_toplevel_theorem(PF_Theorem theorem) {
 	};
 }
 
+PF_TopLevel PF_toplevel_example(PF_Example example) {
+	return (PF_TopLevel) {
+		.tag = PF_TOPLEVEL_EXAMPLE,
+		.example = example,
+	};
+}
+
 PF_IdentList *PF_ident_list(PF_Ident ident, PF_IdentList *tail) {
 	PF_IdentList *idents = malloc(sizeof(PF_IdentList));
 	idents->ident = ident;
@@ -43,6 +50,14 @@ PF_Theorem PF_theorem(PF_Ident name, PF_IdentList *params, PF_Expr *lhs, PF_Expr
 	return (PF_Theorem) {
 		.name = name,
 		.params = params,
+		.lhs = lhs,
+		.rhs = rhs,
+		.proof = proof,
+	};
+}
+
+PF_Example PF_example(PF_Expr *lhs, PF_Expr *rhs, PF_Proof proof) {
+	return (PF_Example) {
 		.lhs = lhs,
 		.rhs = rhs,
 		.proof = proof,

@@ -107,6 +107,14 @@ void print_theorem(PF_Theorem *theorem) {
 	print_proof(&theorem->proof);
 }
 
+void print_example(PF_Example *example) {
+	printf("EXAMPLE ");
+	_print_expr(example->lhs);
+	printf(" = ");
+	PF_print_expr(example->rhs);
+	print_proof(&example->proof);
+}
+
 void print_toplevel(PF_TopLevel *toplevel) {
 	if (!toplevel) {
 		printf("ERROR: Toplevel is NULL\n");
@@ -116,6 +124,7 @@ void print_toplevel(PF_TopLevel *toplevel) {
 	switch (toplevel->tag) {
 		case PF_TOPLEVEL_AXIOM: print_axiom(&toplevel->axiom); break;
 		case PF_TOPLEVEL_THEOREM: print_theorem(&toplevel->theorem); break;
+		case PF_TOPLEVEL_EXAMPLE: print_example(&toplevel->example); break;
 	}
 }
 
