@@ -111,23 +111,23 @@ typedef struct _Program {
 } Program;
 
 
-Program *program(TopLevel toplevel, Program *rest);
-TopLevel toplevel_axiom(Axiom axiom);
-TopLevel toplevel_theorem(Theorem theorem);
-TopLevel toplevel_example(Example example);
-IdentList *ident_list(Ident ident, IdentList *tail);
-Axiom axiom(Ident name, IdentList *params, Expr *lhs, Expr *rhs);
-Theorem theorem(Ident name, IdentList *params, Expr *lhs, Expr *rhs, Proof *proof);
-Example example(Expr *lhs, Expr *rhs, Proof *proof);
-Expr *expr_num(int num, bool marked);
-Expr *expr_var(Ident var, bool marked);
-Expr *expr_sexp(ExprList *sexp, bool marked);
-ExprList *expr_list(Expr *expr, ExprList *tail);
-Proof *proof_direct(Expr *start, ProofNodeTransform *transform);
-Proof *proof_induction(Ident var, Proof *base, Proof *step);
-ProofNodeExpr *proof_node_expr(Expr *expr, ProofNodeTransform *transform);
-ProofNodeTransform *proof_node_transform(Ident name, bool reversed, ProofNodeExpr *expr);
-ProofNodeTransform *proof_node_transform_induction(ProofNodeExpr *expr);
-ProofNodeTransform *proof_node_transform_todo(ProofNodeExpr *expr);
+Program *new_program(TopLevel toplevel, Program *rest);
+TopLevel new_toplevel_axiom(Axiom axiom);
+TopLevel new_toplevel_theorem(Theorem theorem);
+TopLevel new_toplevel_example(Example example);
+IdentList *new_ident_list(Ident ident, IdentList *tail);
+Axiom new_axiom(Ident name, IdentList *params, Expr *lhs, Expr *rhs);
+Theorem new_theorem(Ident name, IdentList *params, Expr *lhs, Expr *rhs, Proof *proof);
+Example new_example(Expr *lhs, Expr *rhs, Proof *proof);
+Expr *new_expr_num(int num, bool marked);
+Expr *new_expr_var(Ident var, bool marked);
+Expr *new_expr_sexp(ExprList *sexp, bool marked);
+ExprList *new_expr_list(Expr *expr, ExprList *tail);
+Proof *new_proof_direct(Expr *start, ProofNodeTransform *transform);
+Proof *new_proof_induction(Ident var, Proof *base, Proof *step);
+ProofNodeExpr *new_proof_node_expr(Expr *expr, ProofNodeTransform *transform);
+ProofNodeTransform *new_proof_node_transform(Ident name, bool reversed, ProofNodeExpr *expr);
+ProofNodeTransform *new_proof_node_transform_induction(ProofNodeExpr *expr);
+ProofNodeTransform *new_proof_node_transform_todo(ProofNodeExpr *expr);
 
 #endif // !AST_H

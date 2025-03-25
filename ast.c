@@ -2,42 +2,42 @@
 
 #include <stdlib.h>
 
-Program *program(TopLevel toplevel, Program *rest) {
+Program *new_program(TopLevel toplevel, Program *rest) {
 	Program *program = malloc(sizeof(Program));
 	program->toplevel = toplevel;
 	program->rest = rest;
 	return program;
 }
 
-TopLevel toplevel_axiom(Axiom axiom) {
+TopLevel new_toplevel_axiom(Axiom axiom) {
 	return (TopLevel) {
 		.tag = TOPLEVEL_AXIOM,
 		.axiom = axiom,
 	};
 }
 
-TopLevel toplevel_theorem(Theorem theorem) {
+TopLevel new_toplevel_theorem(Theorem theorem) {
 	return (TopLevel) {
 		.tag = TOPLEVEL_THEOREM,
 		.theorem = theorem,
 	};
 }
 
-TopLevel toplevel_example(Example example) {
+TopLevel new_toplevel_example(Example example) {
 	return (TopLevel) {
 		.tag = TOPLEVEL_EXAMPLE,
 		.example = example,
 	};
 }
 
-IdentList *ident_list(Ident ident, IdentList *tail) {
+IdentList *new_ident_list(Ident ident, IdentList *tail) {
 	IdentList *idents = malloc(sizeof(IdentList));
 	idents->ident = ident;
 	idents->tail = tail;
 	return idents;
 }
 
-Axiom axiom(Ident name, IdentList *params, Expr *lhs, Expr *rhs) {
+Axiom new_axiom(Ident name, IdentList *params, Expr *lhs, Expr *rhs) {
 	return (Axiom) {
 		.name = name,
 		.params = params,
@@ -46,7 +46,7 @@ Axiom axiom(Ident name, IdentList *params, Expr *lhs, Expr *rhs) {
 	};
 }
 
-Theorem theorem(Ident name, IdentList *params, Expr *lhs, Expr *rhs, Proof *proof) {
+Theorem new_theorem(Ident name, IdentList *params, Expr *lhs, Expr *rhs, Proof *proof) {
 	return (Theorem) {
 		.name = name,
 		.params = params,
@@ -56,7 +56,7 @@ Theorem theorem(Ident name, IdentList *params, Expr *lhs, Expr *rhs, Proof *proo
 	};
 }
 
-Example example(Expr *lhs, Expr *rhs, Proof *proof) {
+Example new_example(Expr *lhs, Expr *rhs, Proof *proof) {
 	return (Example) {
 		.lhs = lhs,
 		.rhs = rhs,
@@ -64,21 +64,21 @@ Example example(Expr *lhs, Expr *rhs, Proof *proof) {
 	};
 }
 
-Expr *expr_num(int num, bool marked) {
+Expr *new_expr_num(int num, bool marked) {
 	Expr *expr = malloc(sizeof(Expr));
 	if (num == 0) {
 		expr->tag = EXPR_ZERO;
 	} else {
 		expr->tag = EXPR_SEXP;
-		ExprList *rec = expr_list(expr_num(num - 1, false), nullptr);
-		ExprList *sexp = expr_list(expr_var("succ", false), rec);
+		ExprList *rec = new_expr_list(new_expr_num(num - 1, false), nullptr);
+		ExprList *sexp = new_expr_list(new_expr_var("succ", false), rec);
 		expr->sexp = sexp;
 	}
 	expr->marked = marked;
 	return expr;
 }
 
-Expr *expr_var(Ident var, bool marked) {
+Expr *new_expr_var(Ident var, bool marked) {
 	Expr *expr = malloc(sizeof(Expr));
 	expr->tag = EXPR_VAR;
 	expr->var = var;
@@ -86,7 +86,7 @@ Expr *expr_var(Ident var, bool marked) {
 	return expr;
 }
 
-Expr *expr_sexp(ExprList *sexp, bool marked) {
+Expr *new_expr_sexp(ExprList *sexp, bool marked) {
 	Expr *expr = malloc(sizeof(Expr));
 	expr->tag = EXPR_SEXP;
 	expr->sexp = sexp;
@@ -94,14 +94,14 @@ Expr *expr_sexp(ExprList *sexp, bool marked) {
 	return expr;
 }
 
-ExprList *expr_list(Expr *expr, ExprList *tail) {
+ExprList *new_expr_list(Expr *expr, ExprList *tail) {
 	ExprList *exprs = malloc(sizeof(ExprList));
 	exprs->head = expr;
 	exprs->tail = tail;
 	return exprs;
 }
 
-Proof *proof_direct(Expr *start, ProofNodeTransform *transform) {
+Proof *new_proof_direct(Expr *start, ProofNodeTransform *transform) {
 	Proof *proof = malloc(sizeof(Proof));
 	proof->tag = PROOF_DIRECT;
 	proof->direct = (ProofDirect) {
@@ -111,7 +111,7 @@ Proof *proof_direct(Expr *start, ProofNodeTransform *transform) {
 	return proof;
 }
 
-Proof *proof_induction(Ident var, Proof *base, Proof *step) {
+Proof *new_proof_induction(Ident var, Proof *base, Proof *step) {
 	Proof *proof = malloc(sizeof(Proof));
 	proof->tag = PROOF_INDUCTION;
 	proof->induction = (ProofInduction) {
@@ -122,14 +122,14 @@ Proof *proof_induction(Ident var, Proof *base, Proof *step) {
 	return proof;
 }
 
-ProofNodeExpr *proof_node_expr(Expr *expr, ProofNodeTransform *transform) {
+ProofNodeExpr *new_proof_node_expr(Expr *expr, ProofNodeTransform *transform) {
 	ProofNodeExpr *node = malloc(sizeof(ProofNodeExpr));
 	node->expr = expr;
 	node->transform = transform;
 	return node;
 }
 
-ProofNodeTransform *proof_node_transform(Ident name, bool reversed, ProofNodeExpr *expr) {
+ProofNodeTransform *new_proof_node_transform(Ident name, bool reversed, ProofNodeExpr *expr) {
 	ProofNodeTransform *node = malloc(sizeof(ProofNodeTransform));
 	node->tag = PROOF_TRANSFORM_NAMED;
 	node->name = name;
@@ -138,14 +138,14 @@ ProofNodeTransform *proof_node_transform(Ident name, bool reversed, ProofNodeExp
 	return node;
 }
 
-ProofNodeTransform *proof_node_transform_induction(ProofNodeExpr *expr) {
+ProofNodeTransform *new_proof_node_transform_induction(ProofNodeExpr *expr) {
 	ProofNodeTransform *node = malloc(sizeof(ProofNodeTransform));
 	node->tag = PROOF_TRANSFORM_INDUCTION;
 	node->expr = expr;
 	return node;
 }
 
-ProofNodeTransform *proof_node_transform_todo(ProofNodeExpr *expr) {
+ProofNodeTransform *new_proof_node_transform_todo(ProofNodeExpr *expr) {
 	ProofNodeTransform *node = malloc(sizeof(ProofNodeTransform));
 	node->tag = PROOF_TRANSFORM_TODO;
 	node->expr = expr;

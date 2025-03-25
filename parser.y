@@ -53,41 +53,41 @@
 %%
 program:
   /* empty */ { $$ = nullptr; }
-| toplevel program { $$ = program($1, $2); program_ast = $$; }
+| toplevel program { $$ = new_program($1, $2); program_ast = $$; }
 ;
 
 toplevel:
-  axiom { $$ = toplevel_axiom($1); }
-| theorem { $$ = toplevel_theorem($1); }
-| example { $$ = toplevel_example($1); }
+  axiom { $$ = new_toplevel_axiom($1); }
+| theorem { $$ = new_toplevel_theorem($1); }
+| example { $$ = new_toplevel_example($1); }
 ;
 
 axiom:
   KW_AXIOM IDENT expr EQUALS expr {
-    $$ = axiom($2, nullptr, $3, $5);
+    $$ = new_axiom($2, nullptr, $3, $5);
 }
 | KW_AXIOM IDENT ANGLE_OPEN parameters ANGLE_CLOSE expr EQUALS expr {
-    $$ = axiom($2, $4, $6, $8);
+    $$ = new_axiom($2, $4, $6, $8);
 }
 ;
 
 theorem:
   KW_THEOREM IDENT expr EQUALS expr proof {
-    $$ = theorem($2, nullptr, $3, $5, $6);
+    $$ = new_theorem($2, nullptr, $3, $5, $6);
 }
 | KW_THEOREM IDENT ANGLE_OPEN parameters ANGLE_CLOSE expr EQUALS expr proof {
-    $$ = theorem($2, $4, $6, $8, $9);
+    $$ = new_theorem($2, $4, $6, $8, $9);
 }
 ;
 
 parameters:
   /* empty */ { $$ = nullptr; }
-| IDENT parameters { $$ = ident_list($1, $2); }
+| IDENT parameters { $$ = new_ident_list($1, $2); }
 ;
 
 example:
   KW_EXAMPLE expr EQUALS expr proof {
-    $$ = example($2, $4, $5);
+    $$ = new_example($2, $4, $5);
 }
 ;
 
@@ -98,52 +98,52 @@ proof:
 
 proof_direct:
   CURLY_OPEN proof_node_transform CURLY_CLOSE {
-    $$ = proof_direct(nullptr, $2);
+    $$ = new_proof_direct(nullptr, $2);
 }
 | CURLY_OPEN expr proof_node_transform CURLY_CLOSE {
-    $$ = proof_direct($2, $3);
+    $$ = new_proof_direct($2, $3);
 }
 ;
 
 proof_induction:
   KW_INDUCTION IDENT CURLY_OPEN KW_BASE proof KW_STEP proof CURLY_CLOSE {
-    $$ = proof_induction($2, $5, $7);
+    $$ = new_proof_induction($2, $5, $7);
 }
 ;
 
 proof_node_transform:
   /* empty */ { $$ = nullptr; }
 | KW_BY IDENT proof_node_expr {
-    $$ = proof_node_transform($2, false, $3);
+    $$ = new_proof_node_transform($2, false, $3);
 }
 | KW_BY KW_REV IDENT proof_node_expr {
-    $$ = proof_node_transform($3, true, $4);
+    $$ = new_proof_node_transform($3, true, $4);
 }
 | KW_BY KW_INDUCTION proof_node_expr {
-    $$ = proof_node_transform_induction($3);
+    $$ = new_proof_node_transform_induction($3);
 }
 | KW_TODO proof_node_expr {
-    $$ = proof_node_transform_todo($2);
+    $$ = new_proof_node_transform_todo($2);
 }
 ;
 
 proof_node_expr:
   /* empty */ { $$ = nullptr; }
-| expr proof_node_transform { $$ = proof_node_expr($1, $2); }
+| expr proof_node_transform { $$ = new_proof_node_expr($1, $2); }
 ;
 
 expr:
-  NUMBER { $$ = expr_num($1, false); }
-| BRACKET_OPEN NUMBER BRACKET_CLOSE { $$ = expr_num($2, true); }
-| IDENT { $$ = expr_var($1, false); }
-| BRACKET_OPEN IDENT BRACKET_CLOSE { $$ = expr_var($2, true); }
-| PAREN_OPEN expr_list PAREN_CLOSE { $$ = expr_sexp($2, false); }
-| BRACKET_OPEN expr_list BRACKET_CLOSE { $$ = expr_sexp($2, true); }
+  NUMBER { $$ = new_expr_num($1, false); }
+| BRACKET_OPEN NUMBER BRACKET_CLOSE { $$ = new_expr_num($2, true); }
+| IDENT { $$ = new_expr_var($1, false); }
+| BRACKET_OPEN IDENT BRACKET_CLOSE { $$ = new_expr_var($2, true); }
+| PAREN_OPEN expr_list PAREN_CLOSE { $$ = new_expr_sexp($2, false); }
+| BRACKET_OPEN expr_list BRACKET_CLOSE { $$ = new_expr_sexp($2, true); }
 ;
 
 expr_list:
-  expr expr { $$ = expr_list($1, expr_list($2, nullptr)); }
-| expr expr_list { $$ = expr_list($1, $2); }
+  expr expr { $$ = new_expr_list($1, new_expr_list($2, nullptr)); }
+| expr expr_list { $$ = new_expr_list($1, $2); }
 ;
 %%
 
