@@ -7,6 +7,7 @@
 /* forward declarations */
 void _print_expr(Expr *expr);
 void print_node_transform(ProofNodeTransform *transform);
+void print_proof(Proof *proof);
 
 void _print_ident_list(IdentList *idents) {
 	if (!idents) return;
@@ -83,19 +84,27 @@ void print_node_transform(ProofNodeTransform *transform) {
 	if (transform->expr) print_node_expr(transform->expr);
 }
 
-void print_proof_direct(Expr *start, ProofNodeTransform *initial_transform) {
+void print_proof_direct(ProofDirect proof) {
 	printf("START: ");
-	if (start) _print_expr(start); else printf("IMPLIED");
-	printf("\n");
-	print_node_transform(initial_transform);
+	if (proof.start) print_expr(proof.start); else printf("IMPLIED\n");
+	print_node_transform(proof.transform);
+}
+
+void print_proof_induction(ProofInduction proof) {
+	printf("INDUCTION BY %s\n", proof.var);
+	printf("--- BASE ---:\n");
+	print_proof(proof.base);
+	printf("--- STEP ---:\n");
+	print_proof(proof.step);
 }
 
 void print_proof(Proof *proof) {
 	switch (proof->tag) {
 		case PROOF_DIRECT:
-			print_proof_direct(proof->direct.start, proof->direct.transform);
+			print_proof_direct(proof->direct);
 			break;
 		case PROOF_INDUCTION:
+			print_proof_induction(proof->induction);
 			break;
 	}
 }
