@@ -87,7 +87,7 @@ Expr *find_marked_expr(Expr *expr) {
 	return found;
 }
 
-void check_axiom(Axiom *axiom, Rules *rules) {
+void verify_axiom(Axiom *axiom, Rules *rules) {
 	/* check name */
 	if (rules_contain_name(rules, axiom->name)) {
 		printf("ERROR: Duplicate rule name %s\n", axiom->name);
@@ -126,7 +126,7 @@ void verify_program(Program *program, Rules *rules) {
 
 	switch (program->toplevel.tag) {
 		case TOPLEVEL_AXIOM:
-			check_axiom(&program->toplevel.axiom, rules);
+			verify_axiom(&program->toplevel.axiom, rules);
 			break;
 		case TOPLEVEL_THEOREM:
 		case TOPLEVEL_EXAMPLE:
