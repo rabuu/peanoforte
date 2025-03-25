@@ -40,6 +40,15 @@ void add_rule(Rules *rules, Ident name, IdentList *params, Expr *lhs, Expr *rhs)
 	rules->count++;
 }
 
+RuleMap *find_rule(Rules *rules, Ident name) {
+	for (size_t i = 0; i < rules->count; ++i) {
+		RuleMap rule = rules->rules[i];
+		if (!strcmp(name, rule.name))
+			return &rules->rules[i];
+	}
+	return nullptr;
+}
+
 bool rules_contain_name(Rules *rules, Ident name) {
 	for (size_t i = 0; i < rules->count; ++i) {
 		RuleMap rule = rules->rules[i];
@@ -141,8 +150,29 @@ bool expr_equals(Expr *a, Expr *b) {
 	return false;
 }
 
-void transform(Expr *expr, ProofNodeTransform *transform, Rules *rules) {
-	/* TODO */
+void transform(Expr *expr, ProofNodeTransform *transform, Expr *rhs, Rules *rules) {
+	if (!transform) return;
+
+	switch (transform->tag) {
+		case PROOF_TRANSFORM_NAMED:
+			Expr *marked = find_marked_expr(expr);
+			if (!marked) marked = expr;
+			/* TODO: free marked */
+			RuleMap *rule = find_rule(rules, transform->name);
+			if (!rule) {
+				printf("ERROR: No rule named %s.\n", transform->name);
+				exit(1);
+			}
+			break;
+		case PROOF_TRANSFORM_INDUCTION:
+			printf("ERROR: Not yet implemented: 'proof by induction'\n");
+			exit(2);
+		case PROOF_TRANSFORM_TODO:
+			Expr *target = transform->expr ? transform->expr->expr : rhs;
+			Expr *transformed = clone_expr(target);
+			*expr = *transformed;
+			/* TODO: free expr */
+	}
 }
 
 void verify_proof_direct(ProofDirect *proof, Expr *lhs, Expr *rhs, Rules *rules) {
@@ -159,7 +189,7 @@ void verify_proof_direct(ProofDirect *proof, Expr *lhs, Expr *rhs, Rules *rules)
 	}
 
 	Expr *expr = clone_expr(start);
-	transform(expr, proof->transform, rules);
+	transform(expr, proof->transform, rhs, rules);
 
 	if (!expr_equals(expr, rhs)) {
 		printf("ERROR: Transformed expression does not equal RHS.\n");
@@ -285,8 +315,6 @@ int main(int argc, char **argv) {
 	printf("\n*** VERIFY ***\n----------------\n");
 
 	size_t rule_count = count_rules(program);
-	printf("DEBUG: We have %lu rules.\n", rule_count);
-
 	Rules *rules = allocate_rules(rule_count);
 
 	verify_program(program, rules);

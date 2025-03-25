@@ -100,6 +100,7 @@ Expr *clone_expr(Expr *original) {
 
 	Expr *new = malloc(sizeof(Expr));
 	new->tag = original->tag;
+	new->marked = original->marked;
 
 	switch (original->tag) {
 		case EXPR_ZERO: break;
