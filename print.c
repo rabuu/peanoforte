@@ -66,6 +66,12 @@ void print_node_expr(ProofNodeExpr *expr) {
 void print_node_transform(ProofNodeTransform *transform) {
 	if (!transform) return;
 	printf("TRANSFORM");
+
+	if (transform->induction) {
+		printf(": INDUCTION\n");
+		return;
+	}
+
 	if (transform->reversed) printf(" (REVERSED)");
 	printf(": %s\n", transform->name);
 	if (transform->expr) print_node_expr(transform->expr);
@@ -82,6 +88,8 @@ void print_proof(Proof *proof) {
 	switch (proof->tag) {
 		case PROOF_DIRECT:
 			print_proof_direct(proof->direct.start, proof->direct.transform);
+			break;
+		case PROOF_INDUCTION:
 			break;
 	}
 }
@@ -104,7 +112,7 @@ void print_theorem(Theorem *theorem) {
 	_print_expr(theorem->lhs);
 	printf(" = ");
 	print_expr(theorem->rhs);
-	print_proof(&theorem->proof);
+	print_proof(theorem->proof);
 }
 
 void print_example(Example *example) {
@@ -112,7 +120,7 @@ void print_example(Example *example) {
 	_print_expr(example->lhs);
 	printf(" = ");
 	print_expr(example->rhs);
-	print_proof(&example->proof);
+	print_proof(example->proof);
 }
 
 void print_toplevel(TopLevel *toplevel) {

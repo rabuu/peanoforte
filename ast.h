@@ -37,22 +37,35 @@ struct _ProofNodeExpr {
 };
 
 struct _ProofNodeTransform {
+	bool induction;
 	Ident name;
 	bool reversed;
 	ProofNodeExpr *expr;
 };
 
+typedef struct _Proof Proof;
+
 typedef struct {
+	Expr *start;
+	ProofNodeTransform *transform;
+} ProofDirect;
+
+typedef struct {
+	Ident var;
+	struct _Proof *base;
+	struct _Proof *step;
+} ProofInduction;
+
+struct _Proof {
 	enum {
 		PROOF_DIRECT,
+		PROOF_INDUCTION,
 	} tag;
 	union {
-		struct {
-			Expr *start;
-			ProofNodeTransform *transform;
-		} direct;
+		ProofDirect direct;
+		ProofInduction induction;
 	};
-} Proof;
+};
 
 typedef struct {
 	Ident name;
@@ -66,13 +79,13 @@ typedef struct {
 	IdentList *params;
 	Expr *lhs;
 	Expr *rhs;
-	Proof proof;
+	Proof *proof;
 } Theorem;
 
 typedef struct {
 	Expr *lhs;
 	Expr *rhs;
-	Proof proof;
+	Proof *proof;
 } Example;
 
 typedef struct {
@@ -100,15 +113,17 @@ TopLevel toplevel_theorem(Theorem theorem);
 TopLevel toplevel_example(Example example);
 IdentList *ident_list(Ident ident, IdentList *tail);
 Axiom axiom(Ident name, IdentList *params, Expr *lhs, Expr *rhs);
-Theorem theorem(Ident name, IdentList *params, Expr *lhs, Expr *rhs, Proof proof);
-Example example(Expr *lhs, Expr *rhs, Proof proof);
+Theorem theorem(Ident name, IdentList *params, Expr *lhs, Expr *rhs, Proof *proof);
+Example example(Expr *lhs, Expr *rhs, Proof *proof);
 Expr *expr_num(int num, bool marked);
 Expr *expr_var(Ident var, bool marked);
 Expr *expr_sexp(ExprList *sexp, bool marked);
 ExprList *expr_list(Expr *expr, ExprList *tail);
 Expr *expr_find_marked(Expr *expr);
-Proof proof_direct(Expr *start, ProofNodeTransform *transform);
+Proof *proof_direct(Expr *start, ProofNodeTransform *transform);
+Proof *proof_induction(Ident var, Proof *base, Proof *step);
 ProofNodeExpr *proof_node_expr(Expr *expr, ProofNodeTransform *transform);
 ProofNodeTransform *proof_node_transform(Ident name, bool reversed, ProofNodeExpr *expr);
+ProofNodeTransform *proof_node_transform_induction(ProofNodeExpr *expr);
 
 #endif // !AST_H

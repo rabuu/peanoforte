@@ -48,7 +48,7 @@ Axiom axiom(Ident name, IdentList *params, Expr *lhs, Expr *rhs) {
 	};
 }
 
-Theorem theorem(Ident name, IdentList *params, Expr *lhs, Expr *rhs, Proof proof) {
+Theorem theorem(Ident name, IdentList *params, Expr *lhs, Expr *rhs, Proof *proof) {
 	return (Theorem) {
 		.name = name,
 		.params = params,
@@ -58,7 +58,7 @@ Theorem theorem(Ident name, IdentList *params, Expr *lhs, Expr *rhs, Proof proof
 	};
 }
 
-Example example(Expr *lhs, Expr *rhs, Proof proof) {
+Example example(Expr *lhs, Expr *rhs, Proof *proof) {
 	return (Example) {
 		.lhs = lhs,
 		.rhs = rhs,
@@ -143,14 +143,25 @@ Expr *expr_find_marked(Expr *expr) {
 	return found;
 }
 
-Proof proof_direct(Expr *start, ProofNodeTransform *transform) {
-	return (Proof) {
-		.tag = PROOF_DIRECT,
-		.direct = {
-			.start = start,
-			.transform = transform,
-		},
+Proof *proof_direct(Expr *start, ProofNodeTransform *transform) {
+	Proof *proof = malloc(sizeof(Proof));
+	proof->tag = PROOF_DIRECT;
+	proof->direct = (ProofDirect) {
+		.start = start,
+		.transform = transform,
 	};
+	return proof;
+}
+
+Proof *proof_induction(Ident var, Proof *base, Proof *step) {
+	Proof *proof = malloc(sizeof(Proof));
+	proof->tag = PROOF_INDUCTION;
+	proof->induction = (ProofInduction) {
+		.var = var,
+		.base = base,
+		.step = step,
+	};
+	return proof;
 }
 
 ProofNodeExpr *proof_node_expr(Expr *expr, ProofNodeTransform *transform) {
@@ -162,8 +173,16 @@ ProofNodeExpr *proof_node_expr(Expr *expr, ProofNodeTransform *transform) {
 
 ProofNodeTransform *proof_node_transform(Ident name, bool reversed, ProofNodeExpr *expr) {
 	ProofNodeTransform *node = malloc(sizeof(ProofNodeTransform));
+	node->induction = false;
 	node->name = name;
 	node->reversed = reversed;
+	node->expr = expr;
+	return node;
+}
+
+ProofNodeTransform *proof_node_transform_induction(ProofNodeExpr *expr) {
+	ProofNodeTransform *node = malloc(sizeof(ProofNodeTransform));
+	node->induction = true;
 	node->expr = expr;
 	return node;
 }

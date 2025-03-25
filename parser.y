@@ -20,7 +20,7 @@
    IdentList *ident_list;
    Expr *expr;
    ExprList *expr_list;
-   Proof proof;
+   Proof *proof;
    ProofNodeExpr *proof_node_expr;
    ProofNodeTransform *proof_node_transform;
 }
@@ -43,6 +43,8 @@
 %type <example> example;
 %type <ident_list> parameters;
 %type <proof> proof;
+%type <proof> proof_direct;
+%type <proof> proof_induction;
 %type <proof_node_transform> proof_node_transform;
 %type <proof_node_expr> proof_node_expr;
 %type <expr> expr;
@@ -90,11 +92,22 @@ example:
 ;
 
 proof:
+  proof_direct { $$ = $1; }
+| proof_induction { $$ = $1; }
+;
+
+proof_direct:
   CURLY_OPEN proof_node_transform CURLY_CLOSE {
     $$ = proof_direct(nullptr, $2);
 }
 | CURLY_OPEN expr proof_node_transform CURLY_CLOSE {
     $$ = proof_direct($2, $3);
+}
+;
+
+proof_induction:
+  KW_INDUCTION IDENT CURLY_OPEN KW_BASE proof KW_STEP proof CURLY_CLOSE {
+    $$ = proof_induction($2, $5, $7);
 }
 ;
 
@@ -105,6 +118,9 @@ proof_node_transform:
 }
 | KW_BY KW_REV IDENT proof_node_expr {
     $$ = proof_node_transform($3, true, $4);
+}
+| KW_BY KW_INDUCTION proof_node_expr {
+    $$ = proof_node_transform_induction($3);
 }
 ;
 
