@@ -32,6 +32,8 @@ IDENT [_]?[a-zA-Z][-a-zA-Z0-9]*
 
 [ \t\n]+ { }
 
+;.* { }
+
 {DIGIT}+ {
 	yylval.num = atoi(yytext);
 	return NUMBER;
