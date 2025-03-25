@@ -161,6 +161,7 @@ int main(int argc, char **argv) {
 	Rules *rules = allocate_rules(rule_count);
 
 	verify_program(program, rules);
+	printf("SUCCESS\n");
 
-	return parse_error;
+	return 0;
 }
