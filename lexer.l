@@ -41,7 +41,7 @@ IDENT [_]?[a-zA-Z][-a-zA-Z0-9]*
 
 {IDENT} {
 	size_t len = strlen(yytext);
-	char *str = calloc(len + 1, sizeof(char*));
+	char *str = malloc((len + 1) * sizeof(char*));
 	str = strncpy(str, yytext, len);
 	str[len] = '\0';
 	yylval.ident = str;
