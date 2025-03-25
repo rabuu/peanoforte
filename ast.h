@@ -1,6 +1,7 @@
 #ifndef AST_H
 #define AST_H
 
+#include <stddef.h>
 typedef char* Ident;
 
 typedef struct _IdentList {
@@ -116,15 +117,15 @@ TopLevel new_toplevel_axiom(Axiom axiom);
 TopLevel new_toplevel_theorem(Theorem theorem);
 TopLevel new_toplevel_example(Example example);
 IdentList *new_ident_list(Ident ident, IdentList *tail);
+size_t ident_list_count(IdentList *list);
+bool ident_list_contains(Ident ident, IdentList *list);
 Axiom new_axiom(Ident name, IdentList *params, Expr *lhs, Expr *rhs);
 Theorem new_theorem(Ident name, IdentList *params, Expr *lhs, Expr *rhs, Proof *proof);
 Example new_example(Expr *lhs, Expr *rhs, Proof *proof);
 Expr *new_expr_num(int num, bool marked);
 Expr *new_expr_var(Ident var, bool marked);
 Expr *new_expr_sexp(ExprList *sexp, bool marked);
-Expr *clone_expr(Expr *original);
 ExprList *new_expr_list(Expr *expr, ExprList *tail);
-ExprList *clone_expr_list(ExprList *original);
 Proof *new_proof_direct(Expr *start, ProofNodeTransform *transform);
 Proof *new_proof_induction(Ident var, Proof *base, Proof *step);
 ProofNodeExpr *new_proof_node_expr(Expr *expr, ProofNodeTransform *transform);

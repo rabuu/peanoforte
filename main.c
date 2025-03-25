@@ -7,31 +7,42 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* forward declarations */
-Expr *find_marked_expr(Expr *expr);
-void unmark_expr(Expr *expr);
-bool expr_equals(Expr *a, Expr *b);
-
 typedef struct {
 	Ident name;
 	IdentList *params;
 	Expr *lhs;
 	Expr *rhs;
-} RuleMap;
+} Rule;
 
 typedef struct {
 	size_t count;
-	RuleMap rules[];
+	Rule rules[];
 } Rules;
 
+typedef struct {
+	Ident param;
+	Expr *expr;
+} Binding;
+
+typedef struct {
+	size_t count;
+	Binding bindings[];
+} Bindings;
+
+/* forward declarations */
+Expr *find_marked_expr(Expr *expr);
+void unmark_expr(Expr *expr);
+bool expr_equals(Expr *a, Expr *b);
+bool match_lhs(Expr *expr, Expr *pattern, IdentList *params, Bindings *bindings);
+
 Rules *allocate_rules(size_t len) {
-	Rules *rules = malloc(sizeof(Rules) + len * sizeof(RuleMap));
+	Rules *rules = malloc(sizeof(Rules) + len * sizeof(Rule));
 	rules->count = 0;
 	return rules;
 }
 
 void add_rule(Rules *rules, Ident name, IdentList *params, Expr *lhs, Expr *rhs) {
-	rules->rules[rules->count] = (RuleMap) {
+	rules->rules[rules->count] = (Rule) {
 		.name = name,
 		.params = params,
 		.lhs = lhs,
@@ -40,28 +51,51 @@ void add_rule(Rules *rules, Ident name, IdentList *params, Expr *lhs, Expr *rhs)
 	rules->count++;
 }
 
-RuleMap *find_rule(Rules *rules, Ident name) {
+Rule *find_rule(Rules *rules, Ident name) {
 	for (size_t i = 0; i < rules->count; ++i) {
-		RuleMap rule = rules->rules[i];
+		Rule rule = rules->rules[i];
 		if (!strcmp(name, rule.name))
 			return &rules->rules[i];
 	}
 	return nullptr;
 }
 
-bool rules_contain_name(Rules *rules, Ident name) {
-	for (size_t i = 0; i < rules->count; ++i) {
-		RuleMap rule = rules->rules[i];
-		if (!strcmp(name, rule.name))
-			return true;
-	}
-	return false;
-}
-
 void assert_unique_name(Ident name, Rules *rules) {
-	if (rules_contain_name(rules, name)) {
+	if (find_rule(rules, name)) {
 		printf("ERROR: Duplicate rule name %s\n", name);
 		exit(1);
+	}
+}
+
+Bindings *allocate_bindings(size_t len) {
+	Bindings *bindings = malloc(sizeof(Bindings) + len * sizeof(Binding));
+	bindings->count = 0;
+	return bindings;
+}
+
+void add_binding(Bindings *bindings, Ident param, Expr *expr) {
+	bindings->bindings[bindings->count] = (Binding) {
+		.param = param,
+		.expr = expr,
+	};
+	bindings->count++;
+}
+
+Binding *find_binding(Ident name, Bindings *bindings) {
+	for (size_t i = 0; i < bindings->count; ++i) {
+		Binding binding = bindings->bindings[i];
+		if (!strcmp(name, binding.param)) {
+			return &bindings->bindings[i];
+		}
+	}
+	return nullptr;
+}
+
+void debug_bindings(Bindings *bindings) {
+	for (size_t i = 0; i < bindings->count; ++i) {
+		Binding binding = bindings->bindings[i];
+		printf("DEBUG: %s -> ", binding.param);
+		print_expr(binding.expr);
 	}
 }
 
@@ -150,28 +184,73 @@ bool expr_equals(Expr *a, Expr *b) {
 	return false;
 }
 
-void transform(Expr *expr, ProofNodeTransform *transform, Expr *rhs, Rules *rules) {
-	if (!transform) return;
+bool match_sexp(ExprList *expr_list, ExprList *pattern_list, IdentList *params, Bindings *bindings) {
+	if (!expr_list) return pattern_list == nullptr;
+	if (!pattern_list) return expr_list == nullptr;
+
+	if (!match_lhs(expr_list->head, pattern_list->head, params, bindings)) return false;
+	return match_sexp(expr_list->tail, pattern_list->tail, params, bindings);
+}
+
+bool match_lhs(Expr *expr, Expr *pattern, IdentList *params, Bindings *bindings) {
+	switch (pattern->tag) {
+		case EXPR_ZERO: return expr->tag == EXPR_ZERO;
+		case EXPR_VAR:
+			if (ident_list_contains(pattern->var, params)) {
+				Binding *existing_binding;
+				if ((existing_binding = find_binding(pattern->var, bindings))) {
+					return expr_equals(expr, existing_binding->expr);
+				}
+
+				add_binding(bindings, pattern->var, expr);
+				return true;
+			}
+			if (expr->tag != EXPR_VAR) return false;
+			if (strcmp(expr->var, pattern->var)) return false;
+			return true;
+		case EXPR_SEXP:
+			if (expr->tag != EXPR_SEXP) return false;
+			return match_sexp(expr->sexp, pattern->sexp, params, bindings);
+	}
+	return false;
+}
+
+void verify_transform(Expr *expr, ProofNodeTransform *transform, Expr *rhs, Rules *rules) {
+	if (!transform) {
+		if (!expr_equals(expr, rhs)) {
+			printf("ERROR: Transformed expression is not RHS.\n");
+			exit(1);
+		}
+		return;
+	}
 
 	switch (transform->tag) {
 		case PROOF_TRANSFORM_NAMED:
 			Expr *marked = find_marked_expr(expr);
 			if (!marked) marked = expr;
-			/* TODO: free marked */
-			RuleMap *rule = find_rule(rules, transform->name);
+
+			Rule *rule = find_rule(rules, transform->name);
 			if (!rule) {
-				printf("ERROR: No rule named %s.\n", transform->name);
+				printf("ERROR: There is no rule with name %s.", transform->name);
 				exit(1);
 			}
+
+			size_t params_count = ident_list_count(rule->params);
+			Bindings *bindings = allocate_bindings(params_count);
+
+			if (!match_lhs(marked, rule->lhs, rule->params, bindings)) {
+				printf("ERROR: Expression doesn't match.\n");
+				print_expr(marked); print_expr(rule->lhs);
+				exit(1);
+			}
+
+			debug_bindings(bindings);
 			break;
-		case PROOF_TRANSFORM_INDUCTION:
-			printf("ERROR: Not yet implemented: 'proof by induction'\n");
-			exit(2);
+		case PROOF_TRANSFORM_INDUCTION: printf("not implemented\n"); exit(2);
 		case PROOF_TRANSFORM_TODO:
-			Expr *target = transform->expr ? transform->expr->expr : rhs;
-			Expr *transformed = clone_expr(target);
-			*expr = *transformed;
-			/* TODO: free expr */
+			if (transform->expr) {
+				verify_transform(transform->expr->expr, transform->expr->transform, rhs, rules);
+			}
 	}
 }
 
@@ -188,17 +267,7 @@ void verify_proof_direct(ProofDirect *proof, Expr *lhs, Expr *rhs, Rules *rules)
 		start = lhs;
 	}
 
-	Expr *expr = clone_expr(start);
-	transform(expr, proof->transform, rhs, rules);
-
-	if (!expr_equals(expr, rhs)) {
-		printf("ERROR: Transformed expression does not equal RHS.\n");
-		print_expr(expr);
-		print_expr(rhs);
-		exit(1);
-	}
-
-	/* TODO: free expr */
+	verify_transform(start, proof->transform, rhs, rules);
 }
 
 void verify_proof(Proof *proof, IdentList *, Expr *lhs, Expr *rhs, Rules *rules) {

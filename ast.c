@@ -38,6 +38,17 @@ IdentList *new_ident_list(Ident ident, IdentList *tail) {
 	return idents;
 }
 
+bool ident_list_contains(Ident ident, IdentList *list) {
+	if (!list) return false;
+	if (!strcmp(ident, list->ident)) return true;
+	return ident_list_contains(ident, list->tail);
+}
+
+size_t ident_list_count(IdentList *params) {
+	if (!params) return 0;
+	return 1 + ident_list_count(params->tail);
+}
+
 Axiom new_axiom(Ident name, IdentList *params, Expr *lhs, Expr *rhs) {
 	return (Axiom) {
 		.name = name,
@@ -95,42 +106,11 @@ Expr *new_expr_sexp(ExprList *sexp, bool marked) {
 	return expr;
 }
 
-Expr *clone_expr(Expr *original) {
-	if (!original) return nullptr;
-
-	Expr *new = malloc(sizeof(Expr));
-	new->tag = original->tag;
-	new->marked = original->marked;
-
-	switch (original->tag) {
-		case EXPR_ZERO: break;
-		case EXPR_VAR:
-			/* new->var = strdup(original->var); */
-			new->var = original->var;
-			break;
-		case EXPR_SEXP:
-			new->sexp = clone_expr_list(original->sexp);
-			break;
-	}
-
-	return new;
-}
-
 ExprList *new_expr_list(Expr *expr, ExprList *tail) {
 	ExprList *exprs = malloc(sizeof(ExprList));
 	exprs->head = expr;
 	exprs->tail = tail;
 	return exprs;
-}
-
-ExprList *clone_expr_list(ExprList *original) {
-	if (!original) return nullptr;
-
-	ExprList *new = malloc(sizeof(ExprList));
-	new->head = clone_expr(original->head);
-	new->tail = clone_expr_list(original->tail);
-
-	return new;
 }
 
 Proof *new_proof_direct(Expr *start, ProofNodeTransform *transform) {
