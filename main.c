@@ -142,7 +142,7 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	printf("*** PARSING *** filename: `%s`\n", argv[1]);
+	printf("*** PARSING ***\n----------------\nSOURCE FILE: `%s`\n", argv[1]);
 	Program *program; 
 	int parse_error = parse(argv[1], &program);
 	if (!parse_error) printf("SUCCESS\n");
