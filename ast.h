@@ -123,7 +123,6 @@ Expr *expr_num(int num, bool marked);
 Expr *expr_var(Ident var, bool marked);
 Expr *expr_sexp(ExprList *sexp, bool marked);
 ExprList *expr_list(Expr *expr, ExprList *tail);
-Expr *expr_find_marked(Expr *expr);
 Proof *proof_direct(Expr *start, ProofNodeTransform *transform);
 Proof *proof_induction(Ident var, Proof *base, Proof *step);
 ProofNodeExpr *proof_node_expr(Expr *expr, ProofNodeTransform *transform);

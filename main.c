@@ -1,18 +1,66 @@
 #include "print.h"
 #include "parser.h"
 #include "ast.h"
+
 #include <stdio.h>
+#include <stdlib.h>
+
+/* forward declarations */
+Expr *find_marked_expr(Expr *expr);
+
+void assert_no_marked_exprs(ExprList *list) {
+	if (!list) return;
+	if (find_marked_expr(list->head)) {
+		printf("** ERROR ** Only one subexpression can be marked: ");
+		print_expr(list->head);
+		exit(1);
+	}
+	return assert_no_marked_exprs(list->tail);
+}
+
+Expr *find_marked_expr_in_list(ExprList *list) {
+	if (!list) return nullptr;
+	if (find_marked_expr(list->head)) {
+		assert_no_marked_exprs(list->tail);
+		return list->head;
+	}
+	return find_marked_expr_in_list(list->tail);
+}
+
+Expr *find_marked_expr(Expr *expr) {
+	if (!expr) return nullptr;
+
+	Expr *found = nullptr;
+	if (expr->marked) found = expr;
+
+	switch (expr->tag) {
+		case EXPR_ZERO:
+		case EXPR_VAR:
+			break;
+		case EXPR_SEXP:
+			if (found)
+				assert_no_marked_exprs(expr->sexp);
+			else
+				found = find_marked_expr_in_list(expr->sexp);
+			break;
+	}
+
+	return found;
+}
 
 void check_axiom(Axiom *axiom) {
-	Expr *marked = expr_find_marked(axiom->lhs);
-	if (marked) {
-		print_expr(marked);
-	} else {
-		printf("NO MARK\n");
+	/* check that exprs are unmarked */
+	if (find_marked_expr(axiom->lhs)) {
+		printf("WARN: LHS of axiom %s contains mark: ", axiom->name);
+		print_expr(axiom->lhs);
+	}
+	if (find_marked_expr(axiom->rhs)) {
+		printf("WARN: RHS of axiom %s contains mark: ", axiom->name);
+		print_expr(axiom->rhs);
 	}
 }
 
-void check(Program *ast) {
+void verify_program(Program *ast) {
 	if (!ast) return;
 
 	switch (ast->toplevel.tag) {
@@ -24,7 +72,7 @@ void check(Program *ast) {
 			break;
 	}
 
-	check(ast->rest);
+	verify_program(ast->rest);
 }
 
 int main(int argc, char **argv) {
@@ -33,15 +81,19 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	printf("Try to parse %s...\n", argv[1]);
-	Program *ast; 
-	int parse_success = parse(argv[1], &ast);
+	printf("*** PARSING *** filename: `%s`\n", argv[1]);
+	Program *program; 
+	int parse_error = parse(argv[1], &program);
+	if (!parse_error) printf("SUCCESS\n");
 
-	printf("\n*** DEBUG PRINT ***\n-------------------\n");
-	print_program(ast);
+	if (true) {
+		printf("\n*** DEBUG PRINT ***\n-------------------\n");
+		print_program(program);
+	}
+	if (parse_error) return parse_error;
 
-	printf("\n*** CHECK ***\n--------------\n");
-	check(ast);
+	printf("\n*** VERIFY ***\n----------------\n");
+	verify_program(program);
 
-	return parse_success;
+	return parse_error;
 }
