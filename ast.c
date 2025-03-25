@@ -1,6 +1,7 @@
 #include "ast.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 Program *new_program(TopLevel toplevel, Program *rest) {
 	Program *program = malloc(sizeof(Program));
@@ -94,11 +95,41 @@ Expr *new_expr_sexp(ExprList *sexp, bool marked) {
 	return expr;
 }
 
+Expr *clone_expr(Expr *original) {
+	if (!original) return nullptr;
+
+	Expr *new = malloc(sizeof(Expr));
+	new->tag = original->tag;
+
+	switch (original->tag) {
+		case EXPR_ZERO: break;
+		case EXPR_VAR:
+			/* new->var = strdup(original->var); */
+			new->var = original->var;
+			break;
+		case EXPR_SEXP:
+			new->sexp = clone_expr_list(original->sexp);
+			break;
+	}
+
+	return new;
+}
+
 ExprList *new_expr_list(Expr *expr, ExprList *tail) {
 	ExprList *exprs = malloc(sizeof(ExprList));
 	exprs->head = expr;
 	exprs->tail = tail;
 	return exprs;
+}
+
+ExprList *clone_expr_list(ExprList *original) {
+	if (!original) return nullptr;
+
+	ExprList *new = malloc(sizeof(ExprList));
+	new->head = clone_expr(original->head);
+	new->tail = clone_expr_list(original->tail);
+
+	return new;
 }
 
 Proof *new_proof_direct(Expr *start, ProofNodeTransform *transform) {

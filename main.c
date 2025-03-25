@@ -10,6 +10,7 @@
 /* forward declarations */
 Expr *find_marked_expr(Expr *expr);
 void unmark_expr(Expr *expr);
+bool expr_equals(Expr *a, Expr *b);
 
 typedef struct {
 	Ident name;
@@ -46,6 +47,13 @@ bool rules_contain_name(Rules *rules, Ident name) {
 			return true;
 	}
 	return false;
+}
+
+void assert_unique_name(Ident name, Rules *rules) {
+	if (rules_contain_name(rules, name)) {
+		printf("ERROR: Duplicate rule name %s\n", name);
+		exit(1);
+	}
 }
 
 void assert_no_marked_exprs(ExprList *list) {
@@ -103,10 +111,74 @@ void unmark_expr(Expr *expr) {
 	}
 }
 
-void assert_unique_name(Ident name, Rules *rules) {
-	if (rules_contain_name(rules, name)) {
-		printf("ERROR: Duplicate rule name %s\n", name);
+bool expr_list_equals(ExprList *a, ExprList *b) {
+	if (!a) return b == nullptr;
+	if (!b) return a == nullptr;
+
+	if (expr_equals(a->head, b->head)) {
+		return expr_list_equals(a->tail, b->tail);
+	}
+
+	return false;
+}
+
+bool expr_equals(Expr *a, Expr *b) {
+	if (!a) return b == nullptr;
+	if (!b) return a == nullptr;
+
+	switch (a->tag) {
+		case EXPR_ZERO: return b->tag == EXPR_ZERO;
+		case EXPR_VAR:
+			if (b->tag == EXPR_VAR)
+				return !strcmp(a->var, b->var);
+			else break;
+		case EXPR_SEXP:
+			if (b->tag == EXPR_SEXP)
+				return expr_list_equals(a->sexp, b->sexp);
+			else break;
+	}
+
+	return false;
+}
+
+void transform(Expr *expr, ProofNodeTransform *transform, Rules *rules) {
+	/* TODO */
+}
+
+void verify_proof_direct(ProofDirect *proof, Expr *lhs, Expr *rhs, Rules *rules) {
+	Expr *start = proof->start;
+	if (start) {
+		if (!expr_equals(start, lhs)) {
+			printf("ERROR: Starting expression does not equal LHS.\n");
+			print_expr(start);
+			print_expr(lhs);
+			exit(1);
+		}
+	} else {
+		start = lhs;
+	}
+
+	Expr *expr = clone_expr(start);
+	transform(expr, proof->transform, rules);
+
+	if (!expr_equals(expr, rhs)) {
+		printf("ERROR: Transformed expression does not equal RHS.\n");
+		print_expr(expr);
+		print_expr(rhs);
 		exit(1);
+	}
+
+	/* TODO: free expr */
+}
+
+void verify_proof(Proof *proof, IdentList *, Expr *lhs, Expr *rhs, Rules *rules) {
+	switch (proof->tag) {
+		case PROOF_DIRECT:
+			verify_proof_direct(&proof->direct, lhs, rhs, rules);
+			break;
+		case PROOF_INDUCTION:
+			printf("ERROR: Not yet implemented: 'proof by induction'\n");
+			exit(2);
 	}
 }
 
@@ -141,6 +213,8 @@ void verify_theorem(Theorem *theorem, Rules *rules) {
 		unmark_expr(theorem->rhs);
 	}
 
+	verify_proof(theorem->proof, theorem->params, theorem->lhs, theorem->rhs, rules);
+
 	add_rule(rules, theorem->name, theorem->params, theorem->lhs, theorem->rhs);
 }
 
@@ -155,6 +229,8 @@ void verify_example(Example *example, Rules *rules) {
 		print_expr(example->rhs);
 		unmark_expr(example->rhs);
 	}
+
+	verify_proof(example->proof, nullptr, example->lhs, example->rhs, rules);
 }
 
 size_t count_rules(Program *program) {
