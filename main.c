@@ -9,6 +9,7 @@
 
 /* forward declarations */
 Expr *find_marked_expr(Expr *expr);
+void unmark_expr(Expr *expr);
 
 typedef struct {
 	Ident name;
@@ -87,24 +88,73 @@ Expr *find_marked_expr(Expr *expr) {
 	return found;
 }
 
-void verify_axiom(Axiom *axiom, Rules *rules) {
-	/* check name */
-	if (rules_contain_name(rules, axiom->name)) {
-		printf("ERROR: Duplicate rule name %s\n", axiom->name);
+void unmark_expr_list(ExprList *list) {
+	if (!list) return;
+	unmark_expr(list->head);
+	unmark_expr_list(list->tail);
+}
+
+void unmark_expr(Expr *expr) {
+	if (!expr) return;
+	if (expr->marked) expr->marked = false;
+
+	if (expr->tag == EXPR_SEXP) {
+		unmark_expr_list(expr->sexp);
+	}
+}
+
+void assert_unique_name(Ident name, Rules *rules) {
+	if (rules_contain_name(rules, name)) {
+		printf("ERROR: Duplicate rule name %s\n", name);
 		exit(1);
 	}
+}
 
-	/* check that exprs are unmarked */
+void verify_axiom(Axiom *axiom, Rules *rules) {
+	assert_unique_name(axiom->name, rules);
+
 	if (find_marked_expr(axiom->lhs)) {
 		printf("WARN: LHS of axiom %s contains mark: ", axiom->name);
 		print_expr(axiom->lhs);
+		unmark_expr(axiom->lhs);
 	}
 	if (find_marked_expr(axiom->rhs)) {
 		printf("WARN: RHS of axiom %s contains mark: ", axiom->name);
 		print_expr(axiom->rhs);
+		unmark_expr(axiom->rhs);
 	}
 
 	add_rule(rules, axiom->name, axiom->params, axiom->lhs, axiom->rhs);
+}
+
+void verify_theorem(Theorem *theorem, Rules *rules) {
+	assert_unique_name(theorem->name, rules);
+
+	if (find_marked_expr(theorem->lhs)) {
+		printf("WARN: LHS of theorem %s contains mark: ", theorem->name);
+		print_expr(theorem->lhs);
+		unmark_expr(theorem->lhs);
+	}
+	if (find_marked_expr(theorem->rhs)) {
+		printf("WARN: RHS of theorem %s contains mark: ", theorem->name);
+		print_expr(theorem->rhs);
+		unmark_expr(theorem->rhs);
+	}
+
+	add_rule(rules, theorem->name, theorem->params, theorem->lhs, theorem->rhs);
+}
+
+void verify_example(Example *example, Rules *rules) {
+	if (find_marked_expr(example->lhs)) {
+		printf("WARN: LHS of an example contains mark: ");
+		print_expr(example->lhs);
+		unmark_expr(example->lhs);
+	}
+	if (find_marked_expr(example->rhs)) {
+		printf("WARN: RHS of an example contains mark: ");
+		print_expr(example->rhs);
+		unmark_expr(example->rhs);
+	}
 }
 
 size_t count_rules(Program *program) {
@@ -129,7 +179,10 @@ void verify_program(Program *program, Rules *rules) {
 			verify_axiom(&program->toplevel.axiom, rules);
 			break;
 		case TOPLEVEL_THEOREM:
+			verify_theorem(&program->toplevel.theorem, rules);
+			break;
 		case TOPLEVEL_EXAMPLE:
+			verify_example(&program->toplevel.example, rules);
 			break;
 	}
 
