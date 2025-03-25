@@ -215,7 +215,7 @@ bool match_lhs(Expr *expr, Expr *pattern, IdentList *params, Bindings *bindings)
 	return false;
 }
 
-void verify_transform(Expr *expr, ProofNodeTransform *transform, Expr *rhs, Rules *rules) {
+void verify_transform(Expr *expr, Transform *transform, Expr *rhs, Rules *rules) {
 	if (!transform) {
 		if (!expr_equals(expr, rhs)) {
 			printf("ERROR: Transformed expression is not RHS.\n");
@@ -225,7 +225,7 @@ void verify_transform(Expr *expr, ProofNodeTransform *transform, Expr *rhs, Rule
 	}
 
 	switch (transform->tag) {
-		case PROOF_TRANSFORM_NAMED:
+		case TRANSFORM_NAMED:
 			Expr *marked = find_marked_expr(expr);
 			if (!marked) marked = expr;
 
@@ -246,11 +246,13 @@ void verify_transform(Expr *expr, ProofNodeTransform *transform, Expr *rhs, Rule
 
 			debug_bindings(bindings);
 			break;
-		case PROOF_TRANSFORM_INDUCTION: printf("not implemented\n"); exit(2);
-		case PROOF_TRANSFORM_TODO:
-			if (transform->expr) {
-				verify_transform(transform->expr->expr, transform->expr->transform, rhs, rules);
-			}
+		case TRANSFORM_INDUCTION: printf("not implemented\n"); exit(2);
+		case TRANSFORM_TODO:
+			break;
+	}
+
+	if (transform->target) {
+		verify_transform(transform->target, transform->next, rhs, rules);
 	}
 }
 

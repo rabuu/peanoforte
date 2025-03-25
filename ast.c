@@ -113,7 +113,7 @@ ExprList *new_expr_list(Expr *expr, ExprList *tail) {
 	return exprs;
 }
 
-Proof *new_proof_direct(Expr *start, ProofNodeTransform *transform) {
+Proof *new_proof_direct(Expr *start, Transform *transform) {
 	Proof *proof = malloc(sizeof(Proof));
 	proof->tag = PROOF_DIRECT;
 	proof->direct = (ProofDirect) {
@@ -134,32 +134,28 @@ Proof *new_proof_induction(Ident var, Proof *base, Proof *step) {
 	return proof;
 }
 
-ProofNodeExpr *new_proof_node_expr(Expr *expr, ProofNodeTransform *transform) {
-	ProofNodeExpr *node = malloc(sizeof(ProofNodeExpr));
-	node->expr = expr;
-	node->transform = transform;
-	return node;
+Transform *new_transform_named(Ident name, bool reversed, Expr *target, Transform *next) {
+	Transform *transform = malloc(sizeof(Transform));
+	transform->tag = TRANSFORM_NAMED;
+	transform->name = name;
+	transform->reversed = reversed;
+	transform->target = target;
+	transform->next = next;
+	return transform;
 }
 
-ProofNodeTransform *new_proof_node_transform(Ident name, bool reversed, ProofNodeExpr *expr) {
-	ProofNodeTransform *node = malloc(sizeof(ProofNodeTransform));
-	node->tag = PROOF_TRANSFORM_NAMED;
-	node->name = name;
-	node->reversed = reversed;
-	node->expr = expr;
-	return node;
+Transform *new_transform_induction(Expr *target, Transform *next) {
+	Transform *transform = malloc(sizeof(Transform));
+	transform->tag = TRANSFORM_INDUCTION;
+	transform->target = target;
+	transform->next = next;
+	return transform;
 }
 
-ProofNodeTransform *new_proof_node_transform_induction(ProofNodeExpr *expr) {
-	ProofNodeTransform *node = malloc(sizeof(ProofNodeTransform));
-	node->tag = PROOF_TRANSFORM_INDUCTION;
-	node->expr = expr;
-	return node;
-}
-
-ProofNodeTransform *new_proof_node_transform_todo(ProofNodeExpr *expr) {
-	ProofNodeTransform *node = malloc(sizeof(ProofNodeTransform));
-	node->tag = PROOF_TRANSFORM_TODO;
-	node->expr = expr;
-	return node;
+Transform *new_transform_todo(Expr *target, Transform *next) {
+	Transform *transform = malloc(sizeof(Transform));
+	transform->tag = TRANSFORM_TODO;
+	transform->target = target;
+	transform->next = next;
+	return transform;
 }

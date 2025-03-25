@@ -29,30 +29,23 @@ struct _ExprList {
 	struct _ExprList *tail;
 };
 
-typedef struct _ProofNodeExpr ProofNodeExpr;
-typedef struct _ProofNodeTransform ProofNodeTransform;
-
-struct _ProofNodeExpr {
-	Expr *expr;
-	ProofNodeTransform *transform;
-};
-
-struct _ProofNodeTransform {
+typedef struct _Transform {
 	enum {
-		PROOF_TRANSFORM_NAMED,
-		PROOF_TRANSFORM_INDUCTION,
-		PROOF_TRANSFORM_TODO,
+		TRANSFORM_NAMED,
+		TRANSFORM_INDUCTION,
+		TRANSFORM_TODO,
 	} tag;
 	Ident name;
 	bool reversed;
-	ProofNodeExpr *expr;
-};
+	Expr *target;
+	struct _Transform *next;
+} Transform;
 
 typedef struct _Proof Proof;
 
 typedef struct {
 	Expr *start;
-	ProofNodeTransform *transform;
+	Transform *transform;
 } ProofDirect;
 
 typedef struct {
@@ -126,11 +119,10 @@ Expr *new_expr_num(int num, bool marked);
 Expr *new_expr_var(Ident var, bool marked);
 Expr *new_expr_sexp(ExprList *sexp, bool marked);
 ExprList *new_expr_list(Expr *expr, ExprList *tail);
-Proof *new_proof_direct(Expr *start, ProofNodeTransform *transform);
+Proof *new_proof_direct(Expr *start, Transform *transform);
 Proof *new_proof_induction(Ident var, Proof *base, Proof *step);
-ProofNodeExpr *new_proof_node_expr(Expr *expr, ProofNodeTransform *transform);
-ProofNodeTransform *new_proof_node_transform(Ident name, bool reversed, ProofNodeExpr *expr);
-ProofNodeTransform *new_proof_node_transform_induction(ProofNodeExpr *expr);
-ProofNodeTransform *new_proof_node_transform_todo(ProofNodeExpr *expr);
+Transform *new_transform_named(Ident name, bool reversed, Expr *target, Transform *next);
+Transform *new_transform_induction(Expr *target, Transform *next);
+Transform *new_transform_todo(Expr *target, Transform *next);
 
 #endif // !AST_H

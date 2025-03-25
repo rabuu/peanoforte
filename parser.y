@@ -21,8 +21,7 @@
    Expr *expr;
    ExprList *expr_list;
    Proof *proof;
-   ProofNodeExpr *proof_node_expr;
-   ProofNodeTransform *proof_node_transform;
+   Transform *transform;
 }
 
 %define parse.error verbose
@@ -45,9 +44,9 @@
 %type <proof> proof;
 %type <proof> proof_direct;
 %type <proof> proof_induction;
-%type <proof_node_transform> proof_node_transform;
-%type <proof_node_expr> proof_node_expr;
+%type <transform> transform;
 %type <expr> expr;
+%type <expr> maybe_expr;
 %type <expr_list> expr_list;
 
 %%
@@ -97,10 +96,10 @@ proof:
 ;
 
 proof_direct:
-  CURLY_OPEN proof_node_transform CURLY_CLOSE {
+  CURLY_OPEN transform CURLY_CLOSE {
     $$ = new_proof_direct(nullptr, $2);
 }
-| CURLY_OPEN expr proof_node_transform CURLY_CLOSE {
+| CURLY_OPEN expr transform CURLY_CLOSE {
     $$ = new_proof_direct($2, $3);
 }
 ;
@@ -111,25 +110,20 @@ proof_induction:
 }
 ;
 
-proof_node_transform:
+transform:
   /* empty */ { $$ = nullptr; }
-| KW_BY IDENT proof_node_expr {
-    $$ = new_proof_node_transform($2, false, $3);
+| KW_BY IDENT maybe_expr transform {
+    $$ = new_transform_named($2, false, $3, $4);
 }
-| KW_BY KW_REV IDENT proof_node_expr {
-    $$ = new_proof_node_transform($3, true, $4);
+| KW_BY KW_REV IDENT maybe_expr transform {
+    $$ = new_transform_named($3, true, $4, $5);
 }
-| KW_BY KW_INDUCTION proof_node_expr {
-    $$ = new_proof_node_transform_induction($3);
+| KW_BY KW_INDUCTION maybe_expr transform {
+    $$ = new_transform_induction($3, $4);
 }
-| KW_TODO proof_node_expr {
-    $$ = new_proof_node_transform_todo($2);
+| KW_TODO maybe_expr transform {
+    $$ = new_transform_todo($2, $3);
 }
-;
-
-proof_node_expr:
-  /* empty */ { $$ = nullptr; }
-| expr proof_node_transform { $$ = new_proof_node_expr($1, $2); }
 ;
 
 expr:
@@ -139,6 +133,11 @@ expr:
 | BRACKET_OPEN IDENT BRACKET_CLOSE { $$ = new_expr_var($2, true); }
 | PAREN_OPEN expr_list PAREN_CLOSE { $$ = new_expr_sexp($2, false); }
 | BRACKET_OPEN expr_list BRACKET_CLOSE { $$ = new_expr_sexp($2, true); }
+;
+
+maybe_expr:
+  /* empty */ { $$ = nullptr; }
+| expr { $$ = $1; }
 ;
 
 expr_list:

@@ -6,7 +6,7 @@
 
 /* forward declarations */
 void _print_expr(Expr *expr);
-void print_node_transform(ProofNodeTransform *transform);
+void print_transform(Transform *transform);
 void print_proof(Proof *proof);
 
 void _print_ident_list(IdentList *idents) {
@@ -57,37 +57,31 @@ void print_expr(Expr *expr) {
 	printf("\n");
 }
 
-void print_node_expr(ProofNodeExpr *expr) {
-	if (!expr) return;
-	printf("EXPR: ");
-	print_expr(expr->expr);
-	if (expr->transform) print_node_transform(expr->transform);
-}
-
-void print_node_transform(ProofNodeTransform *transform) {
+void print_transform(Transform *transform) {
 	if (!transform) return;
 	printf("TRANSFORM");
 
 	switch (transform->tag) {
-		case PROOF_TRANSFORM_NAMED:
+		case TRANSFORM_NAMED:
 			if (transform->reversed) printf(" (REVERSED)");
 			printf(": %s\n", transform->name);
 			break;
-		case PROOF_TRANSFORM_INDUCTION:
+		case TRANSFORM_INDUCTION:
 			printf(": INDUCTION\n");
 			break;
-		case PROOF_TRANSFORM_TODO:
+		case TRANSFORM_TODO:
 			printf(": TODO\n");
 			break;
 	}
 
-	if (transform->expr) print_node_expr(transform->expr);
+	if (transform->target) print_expr(transform->target);
+	print_transform(transform->next);
 }
 
 void print_proof_direct(ProofDirect proof) {
 	printf("START: ");
 	if (proof.start) print_expr(proof.start); else printf("IMPLIED\n");
-	print_node_transform(proof.transform);
+	print_transform(proof.transform);
 }
 
 void print_proof_induction(ProofInduction proof) {
