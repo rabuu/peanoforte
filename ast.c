@@ -173,7 +173,7 @@ ProofNodeExpr *proof_node_expr(Expr *expr, ProofNodeTransform *transform) {
 
 ProofNodeTransform *proof_node_transform(Ident name, bool reversed, ProofNodeExpr *expr) {
 	ProofNodeTransform *node = malloc(sizeof(ProofNodeTransform));
-	node->induction = false;
+	node->tag = PROOF_TRANSFORM_NAMED;
 	node->name = name;
 	node->reversed = reversed;
 	node->expr = expr;
@@ -182,7 +182,14 @@ ProofNodeTransform *proof_node_transform(Ident name, bool reversed, ProofNodeExp
 
 ProofNodeTransform *proof_node_transform_induction(ProofNodeExpr *expr) {
 	ProofNodeTransform *node = malloc(sizeof(ProofNodeTransform));
-	node->induction = true;
+	node->tag = PROOF_TRANSFORM_INDUCTION;
+	node->expr = expr;
+	return node;
+}
+
+ProofNodeTransform *proof_node_transform_todo(ProofNodeExpr *expr) {
+	ProofNodeTransform *node = malloc(sizeof(ProofNodeTransform));
+	node->tag = PROOF_TRANSFORM_TODO;
 	node->expr = expr;
 	return node;
 }

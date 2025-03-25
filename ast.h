@@ -37,7 +37,11 @@ struct _ProofNodeExpr {
 };
 
 struct _ProofNodeTransform {
-	bool induction;
+	enum {
+		PROOF_TRANSFORM_NAMED,
+		PROOF_TRANSFORM_INDUCTION,
+		PROOF_TRANSFORM_TODO,
+	} tag;
 	Ident name;
 	bool reversed;
 	ProofNodeExpr *expr;
@@ -125,5 +129,6 @@ Proof *proof_induction(Ident var, Proof *base, Proof *step);
 ProofNodeExpr *proof_node_expr(Expr *expr, ProofNodeTransform *transform);
 ProofNodeTransform *proof_node_transform(Ident name, bool reversed, ProofNodeExpr *expr);
 ProofNodeTransform *proof_node_transform_induction(ProofNodeExpr *expr);
+ProofNodeTransform *proof_node_transform_todo(ProofNodeExpr *expr);
 
 #endif // !AST_H

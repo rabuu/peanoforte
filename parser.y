@@ -122,6 +122,9 @@ proof_node_transform:
 | KW_BY KW_INDUCTION proof_node_expr {
     $$ = proof_node_transform_induction($3);
 }
+| KW_TODO proof_node_expr {
+    $$ = proof_node_transform_todo($2);
+}
 ;
 
 proof_node_expr:

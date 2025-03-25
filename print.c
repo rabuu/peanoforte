@@ -67,13 +67,19 @@ void print_node_transform(ProofNodeTransform *transform) {
 	if (!transform) return;
 	printf("TRANSFORM");
 
-	if (transform->induction) {
-		printf(": INDUCTION\n");
-		return;
+	switch (transform->tag) {
+		case PROOF_TRANSFORM_NAMED:
+			if (transform->reversed) printf(" (REVERSED)");
+			printf(": %s\n", transform->name);
+			break;
+		case PROOF_TRANSFORM_INDUCTION:
+			printf(": INDUCTION\n");
+			break;
+		case PROOF_TRANSFORM_TODO:
+			printf(": TODO\n");
+			break;
 	}
 
-	if (transform->reversed) printf(" (REVERSED)");
-	printf(": %s\n", transform->name);
 	if (transform->expr) print_node_expr(transform->expr);
 }
 
