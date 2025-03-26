@@ -1,19 +1,19 @@
-define addition-neutrum<a> (add a 0) = a
-define addition<a b> (add a (succ b)) = (succ (add a b))
+define add-zero<a> (add a 0) = a
+define add<a b> (add a (succ b)) = (succ (add a b))
 
 example (add 1 1) = 2 {
 	(add 1 1)
-	by addition
+	by add
 	(succ [add 1 0])
-	by addition-neutrum
+	by add-zero
 	(succ 1)
 }
 
 theorem add-one<a> (add a 1) = (succ a) {
 	(add a 1)
-	by addition
+	by add
 	(succ [add a 0])
-	by addition-neutrum
+	by add-zero
 	(succ a)
 }
 
@@ -25,70 +25,60 @@ example (add 1 1) = 2 {
 
 theorem add-two<a> (add a 2) = (succ (succ a)) {
 	(add a 2)
-	by addition
+	by add
 	(succ [add a 1])
 	by add-one
 	(succ (succ a))
 }
 
-theorem addition-neutrum-left<a> (add 0 a) = a
+theorem add-zero-left<a> (add 0 a) = a
 induction a {
-	base { (add 0 0) by addition-neutrum 0 }
+	base { (add 0 0) by add-zero 0 }
 	step {
 		(add 0 (succ a))
-		by addition
+		by add
 		(succ [add 0 a])
 		by induction
 		(succ a)
 	}
 }
 
-theorem addition-left<a b> (add (succ a) b) = (succ (add a b))
+theorem add-left<a b> (add (succ a) b) = (succ (add a b))
 induction b {
 	base {
 		(add (succ a) 0)
-		by addition-neutrum
+		by add-zero
 		(succ [a])
-		by rev addition-neutrum
+		by rev add-zero
 		(succ (add a 0))
 	}
 	step {
 		(add (succ a) (succ b))
-		by addition
+		by add
 		(succ [add (succ a) b])
 		by induction
 		(succ [succ (add a b)])
-		by rev addition
+		by rev add
 		(succ (add a (succ b)))
 	}
 }
 
-theorem addition-commutativity<a b> (add a b) = (add b a)
+theorem add-comm<a b> (add a b) = (add b a)
 induction b {
 	base {
 		(add a 0)
-		by addition-neutrum
+		by add-zero
 		a
-		by rev addition-neutrum-left
+		by rev add-zero-left
 		(add 0 a)
 	}
 	step {
 		(add a (succ b))
-		by addition
+		by add
 		(succ [add a b])
 		by induction
 		(succ (add b a))
-		by rev addition-left
+		by rev add-left
 		(add (succ b) a)
 	}
-}
-
-;; Use `todo` to force (possibly wrong) proofs
-example (add 1 1) = 3 { todo }
-
-example (add 1 1) = 3 {
-	by addition
-	(succ (add 1 0))
-	todo
-	(succ 2)
 }
