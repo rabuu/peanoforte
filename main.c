@@ -282,7 +282,7 @@ void verify_transform(Expr *expr, Transform *transform, Expr *rhs, Rules *rules)
 				print_expr(marked); print_expr(rule->lhs);
 				exit(1);
 			}
-			debug_bindings(bindings);
+			/* debug_bindings(bindings); */
 
 			Expr *target = transform->target ? transform->target : rhs;
 			if (!match_rhs(expr, marked, rule->rhs, target, bindings)) {
