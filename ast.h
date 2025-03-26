@@ -41,29 +41,27 @@ typedef struct _Transform {
 	struct _Transform *next;
 } Transform;
 
-typedef struct _Proof Proof;
-
 typedef struct {
 	Expr *start;
 	Transform *transform;
-} ProofDirect;
+} Direct;
 
 typedef struct {
 	Ident var;
-	struct _Proof *base;
-	struct _Proof *step;
-} ProofInduction;
+	Direct base;
+	Direct step;
+} Induction;
 
-struct _Proof {
+typedef struct {
 	enum {
 		PROOF_DIRECT,
 		PROOF_INDUCTION,
 	} tag;
 	union {
-		ProofDirect direct;
-		ProofInduction induction;
+		Direct direct;
+		Induction induction;
 	};
-};
+} Proof;
 
 typedef struct {
 	Ident name;
@@ -77,13 +75,13 @@ typedef struct {
 	IdentList *params;
 	Expr *lhs;
 	Expr *rhs;
-	Proof *proof;
+	Proof proof;
 } Theorem;
 
 typedef struct {
 	Expr *lhs;
 	Expr *rhs;
-	Proof *proof;
+	Proof proof;
 } Example;
 
 typedef struct {
@@ -113,9 +111,9 @@ TopLevel new_toplevel_example(Example example);
 void free_toplevel(TopLevel *toplevel);
 Define new_define(Ident name, IdentList *params, Expr *lhs, Expr *rhs);
 void free_define(Define *define);
-Theorem new_theorem(Ident name, IdentList *params, Expr *lhs, Expr *rhs, Proof *proof);
+Theorem new_theorem(Ident name, IdentList *params, Expr *lhs, Expr *rhs, Proof proof);
 void free_theorem(Theorem *theorem);
-Example new_example(Expr *lhs, Expr *rhs, Proof *proof);
+Example new_example(Expr *lhs, Expr *rhs, Proof proof);
 void free_example(Example *example);
 IdentList *new_ident_list(Ident ident, IdentList *tail);
 void free_ident_list(IdentList *ident_list);
@@ -129,8 +127,12 @@ Expr *new_expr_succ(Expr *inner, bool marked);
 void free_expr(Expr *expr);
 ExprList *new_expr_list(Expr *expr, ExprList *tail);
 void free_expr_list(ExprList *expr_list);
-Proof *new_proof_direct(Expr *start, Transform *transform);
-Proof *new_proof_induction(Ident var, Proof *base, Proof *step);
+Direct new_direct(Expr *start, Transform *transform);
+void free_direct(Direct *direct);
+Induction new_induction(Ident var, Direct base, Direct step);
+void free_induction(Induction *induction);
+Proof new_proof_direct(Direct direct);
+Proof new_proof_induction(Induction induction);
 void free_proof(Proof *proof);
 Transform *new_transform_named(Ident name, bool reversed, Expr *target, Transform *next);
 Transform *new_transform_induction(Expr *target, Transform *next);

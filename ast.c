@@ -71,7 +71,7 @@ void free_define(Define *define) {
 	free_expr(define->rhs);
 }
 
-Theorem new_theorem(Ident name, IdentList *params, Expr *lhs, Expr *rhs, Proof *proof) {
+Theorem new_theorem(Ident name, IdentList *params, Expr *lhs, Expr *rhs, Proof proof) {
 	return (Theorem) {
 		.name = name,
 		.params = params,
@@ -87,10 +87,10 @@ void free_theorem(Theorem *theorem) {
 	free_ident_list(theorem->params);
 	free_expr(theorem->lhs);
 	free_expr(theorem->rhs);
-	free_proof(theorem->proof);
+	free_proof(&theorem->proof);
 }
 
-Example new_example(Expr *lhs, Expr *rhs, Proof *proof) {
+Example new_example(Expr *lhs, Expr *rhs, Proof proof) {
 	return (Example) {
 		.lhs = lhs,
 		.rhs = rhs,
@@ -102,7 +102,7 @@ void free_example(Example *example) {
 	if (!example) return;
 	free_expr(example->lhs);
 	free_expr(example->rhs);
-	free_proof(example->proof);
+	free_proof(&example->proof);
 }
 
 IdentList *new_ident_list(Ident ident, IdentList *tail) {
@@ -198,25 +198,46 @@ void free_expr_list(ExprList *expr_list) {
 	free(expr_list);
 }
 
-Proof *new_proof_direct(Expr *start, Transform *transform) {
-	Proof *proof = malloc(sizeof(Proof));
-	proof->tag = PROOF_DIRECT;
-	proof->direct = (ProofDirect) {
+Direct new_direct(Expr *start, Transform *transform) {
+	return (Direct) {
 		.start = start,
 		.transform = transform,
 	};
-	return proof;
 }
 
-Proof *new_proof_induction(Ident var, Proof *base, Proof *step) {
-	Proof *proof = malloc(sizeof(Proof));
-	proof->tag = PROOF_INDUCTION;
-	proof->induction = (ProofInduction) {
+void free_direct(Direct *direct) {
+	if (!direct) return;
+	free_expr(direct->start);
+	free_transform(direct->transform);
+}
+
+Induction new_induction(Ident var, Direct base, Direct step) {
+	return (Induction) {
 		.var = var,
 		.base = base,
 		.step = step,
 	};
-	return proof;
+}
+
+void free_induction(Induction *induction) {
+	if (!induction) return;
+	free(induction->var);
+	free_direct(&induction->base);
+	free_direct(&induction->step);
+}
+
+Proof new_proof_direct(Direct direct) {
+	return (Proof) {
+		.tag = PROOF_DIRECT,
+		.direct = direct,
+	};
+}
+
+Proof new_proof_induction(Induction induction) {
+	return (Proof) {
+		.tag = PROOF_INDUCTION,
+		.induction = induction,
+	};
 }
 
 void free_proof(Proof *proof) {
@@ -224,17 +245,12 @@ void free_proof(Proof *proof) {
 
 	switch (proof->tag) {
 		case PROOF_DIRECT:
-			free_expr(proof->direct.start);
-			free_transform(proof->direct.transform);
+			free_direct(&proof->direct);
 			break;
 		case PROOF_INDUCTION:
-			free(proof->induction.var);
-			free_proof(proof->induction.base);
-			free_proof(proof->induction.step);
+			free_induction(&proof->induction);
 			break;
 	}
-
-	free(proof);
 }
 
 Transform *new_transform_named(Ident name, bool reversed, Expr *target, Transform *next) {

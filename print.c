@@ -75,18 +75,18 @@ void print_transform(Transform *transform) {
 	print_transform(transform->next);
 }
 
-void print_proof_direct(ProofDirect proof) {
+void print_proof_direct(Direct proof) {
 	printf("START: ");
 	if (proof.start) print_expr(proof.start); else printf("IMPLIED\n");
 	print_transform(proof.transform);
 }
 
-void print_proof_induction(ProofInduction proof) {
+void print_proof_induction(Induction proof) {
 	printf("INDUCTION BY %s\n", proof.var);
 	printf("--- BASE ---:\n");
-	print_proof(proof.base);
+	print_proof_direct(proof.base);
 	printf("--- STEP ---:\n");
-	print_proof(proof.step);
+	print_proof_direct(proof.step);
 }
 
 void print_proof(Proof *proof) {
@@ -118,7 +118,7 @@ void print_theorem(Theorem *theorem) {
 	_print_expr(theorem->lhs);
 	printf(" = ");
 	print_expr(theorem->rhs);
-	print_proof(theorem->proof);
+	print_proof(&theorem->proof);
 }
 
 void print_example(Example *example) {
@@ -126,7 +126,7 @@ void print_example(Example *example) {
 	_print_expr(example->lhs);
 	printf(" = ");
 	print_expr(example->rhs);
-	print_proof(example->proof);
+	print_proof(&example->proof);
 }
 
 void print_toplevel(TopLevel *toplevel) {

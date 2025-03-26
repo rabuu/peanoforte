@@ -337,8 +337,8 @@ bool verify_transform(Expr *expr, Transform *transform, Expr *rhs, Rules *rules)
 	return true;
 }
 
-bool verify_proof_direct(ProofDirect *proof, Expr *lhs, Expr *rhs, Rules *rules) {
-	Expr *start = proof->start;
+bool verify_proof_direct(Direct *direct, Expr *lhs, Expr *rhs, Rules *rules) {
+	Expr *start = direct->start;
 	if (start) {
 		if (!expr_equals(start, lhs)) {
 			printf("** ERROR ** Starting expression does not equal LHS.\n");
@@ -350,33 +350,33 @@ bool verify_proof_direct(ProofDirect *proof, Expr *lhs, Expr *rhs, Rules *rules)
 		start = lhs;
 	}
 
-	return verify_transform(start, proof->transform, rhs, rules);
+	return verify_transform(start, direct->transform, rhs, rules);
 }
 
-bool verify_proof_induction(ProofInduction *proof, IdentList *params, Expr *lhs, Expr *rhs, Rules *rules) {
-	if (!ident_list_contains(proof->var, params)) {
-		printf("** ERROR ** Induction over %s not possible.", proof->var);
+bool verify_proof_induction(Induction *induction, IdentList *params, Expr *lhs, Expr *rhs, Rules *rules) {
+	if (!ident_list_contains(induction->var, params)) {
+		printf("** ERROR ** Induction over %s not possible.", induction->var);
 		return false;
 	}
 
-	Expr *base_lhs = clone_expr_and_replace(lhs, new_expr_zero(false), proof->var);
-	Expr *base_rhs = clone_expr_and_replace(rhs, new_expr_zero(false), proof->var);
-	if (!verify_proof(proof->base, params, base_lhs, base_rhs, rules)) {
+	Expr *base_lhs = clone_expr_and_replace(lhs, new_expr_zero(false), induction->var);
+	Expr *base_rhs = clone_expr_and_replace(rhs, new_expr_zero(false), induction->var);
+	if (!verify_proof_direct(&induction->base, base_lhs, base_rhs, rules)) {
 		return false;
 	}
 
 	Expr *step_lhs = clone_expr_and_replace(
 		lhs,
-		new_expr_succ(new_expr_var(strdup(proof->var), false), false),
-		proof->var
+		new_expr_succ(new_expr_var(strdup(induction->var), false), false),
+		induction->var
 	);
 	Expr *step_rhs = clone_expr_and_replace(
 		rhs,
-		new_expr_succ(new_expr_var(strdup(proof->var), false), false),
-		proof->var
+		new_expr_succ(new_expr_var(strdup(induction->var), false), false),
+		induction->var
 	);
 
-	if (!verify_proof(proof->step, params, step_lhs, step_rhs, rules)) {
+	if (!verify_proof_direct(&induction->step, step_lhs, step_rhs, rules)) {
 		return false;
 	}
 	return false;
@@ -432,7 +432,7 @@ bool verify_theorem(Theorem *theorem, Rules *rules) {
 		unmark_expr(theorem->rhs);
 	}
 
-	if (!verify_proof(theorem->proof, theorem->params, theorem->lhs, theorem->rhs, rules))
+	if (!verify_proof(&theorem->proof, theorem->params, theorem->lhs, theorem->rhs, rules))
 		return false;
 
 	add_rule(rules, theorem->name, theorem->params, theorem->lhs, theorem->rhs);
@@ -452,7 +452,7 @@ bool verify_example(Example *example, Rules *rules) {
 		unmark_expr(example->rhs);
 	}
 
-	return verify_proof(example->proof, nullptr, example->lhs, example->rhs, rules);
+	return verify_proof(&example->proof, nullptr, example->lhs, example->rhs, rules);
 }
 
 size_t count_rules(Program *program) {

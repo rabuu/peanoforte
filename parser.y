@@ -20,7 +20,9 @@
    IdentList *ident_list;
    Expr *expr;
    ExprList *expr_list;
-   Proof *proof;
+   Proof proof;
+   Direct direct;
+   Induction induction;
    Transform *transform;
 }
 
@@ -42,8 +44,8 @@
 %type <example> example;
 %type <ident_list> parameters;
 %type <proof> proof;
-%type <proof> proof_direct;
-%type <proof> proof_induction;
+%type <direct> direct;
+%type <induction> induction;
 %type <transform> transform;
 %type <expr> expr;
 %type <expr> maybe_expr;
@@ -91,22 +93,19 @@ example:
 ;
 
 proof:
-  proof_direct { $$ = $1; }
-| proof_induction { $$ = $1; }
+  direct { $$ = new_proof_direct($1); }
+| induction { $$ = new_proof_induction($1); }
 ;
 
-proof_direct:
-  CURLY_OPEN transform CURLY_CLOSE {
-    $$ = new_proof_direct(nullptr, $2);
-}
-| CURLY_OPEN expr transform CURLY_CLOSE {
-    $$ = new_proof_direct($2, $3);
+direct:
+  CURLY_OPEN maybe_expr transform CURLY_CLOSE {
+    $$ = new_direct($2, $3);
 }
 ;
 
-proof_induction:
-  KW_INDUCTION IDENT CURLY_OPEN KW_BASE proof KW_STEP proof CURLY_CLOSE {
-    $$ = new_proof_induction($2, $5, $7);
+induction:
+  KW_INDUCTION IDENT CURLY_OPEN KW_BASE direct KW_STEP direct CURLY_CLOSE {
+    $$ = new_induction($2, $5, $7);
 }
 ;
 
