@@ -114,9 +114,11 @@ void assert_no_marked_exprs(ExprList *list) {
 
 Expr *find_marked_expr_in_list(ExprList *list) {
 	if (!list) return nullptr;
-	if (find_marked_expr(list->head)) {
+
+	Expr *marked;
+	if ((marked = find_marked_expr(list->head))) {
 		assert_no_marked_exprs(list->tail);
-		return list->head;
+		return marked;
 	}
 	return find_marked_expr_in_list(list->tail);
 }
