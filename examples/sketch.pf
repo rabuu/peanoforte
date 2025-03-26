@@ -84,6 +84,11 @@ induction b {
 }
 
 ;; Use `todo` to force (possibly wrong) proofs
+example (add 1 1) = 3 { todo }
+
 example (add 1 1) = 3 {
+	by addition
+	(succ (add 1 0))
 	todo
+	(succ 2)
 }
