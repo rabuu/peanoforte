@@ -30,10 +30,7 @@ void _print_sexp(ExprList *sexp, bool marked) {
 }
 
 void _print_expr(Expr *expr) {
-	if (!expr) {
-		printf("ERROR: Expr is NULL\n");
-		exit(1);
-	}
+	if (!expr) printf("null expr");
 
 	switch (expr->tag) {
 		case EXPR_ZERO:
@@ -133,10 +130,7 @@ void print_example(Example *example) {
 }
 
 void print_toplevel(TopLevel *toplevel) {
-	if (!toplevel) {
-		printf("ERROR: Toplevel is NULL\n");
-		exit(1);
-	}
+	if (!toplevel) printf("null toplevel\n");
 
 	switch (toplevel->tag) {
 		case TOPLEVEL_DEFINE: print_define(&toplevel->define); break;

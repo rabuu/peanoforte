@@ -52,20 +52,13 @@ void add_rule(Rules *rules, Ident name, IdentList *params, Expr *lhs, Expr *rhs)
 	rules->count++;
 }
 
-Rule *find_rule(Rules *rules, Ident name) {
+Rule *find_rule(Ident name, Rules *rules) {
 	for (size_t i = 0; i < rules->count; ++i) {
 		Rule rule = rules->rules[i];
 		if (!strcmp(name, rule.name))
 			return &rules->rules[i];
 	}
 	return nullptr;
-}
-
-void assert_unique_name(Ident name, Rules *rules) {
-	if (find_rule(rules, name)) {
-		printf("ERROR: Duplicate rule name %s\n", name);
-		exit(1);
-	}
 }
 
 Bindings *allocate_bindings(size_t len) {
@@ -102,14 +95,14 @@ void debug_bindings(Bindings *bindings) {
 	}
 }
 
-void assert_no_marked_exprs(ExprList *list) {
+void warn_more_marked_exprs(ExprList *list) {
 	if (!list) return;
 	if (find_marked_expr(list->head)) {
-		printf("** ERROR ** Only one subexpression can be marked: ");
+		printf("** WARN ** More than one subexpression marked: ");
 		print_expr(list->head);
-		exit(1);
+		unmark_expr(list->head);
 	}
-	return assert_no_marked_exprs(list->tail);
+	return warn_more_marked_exprs(list->tail);
 }
 
 Expr *find_marked_expr_in_list(ExprList *list) {
@@ -117,7 +110,7 @@ Expr *find_marked_expr_in_list(ExprList *list) {
 
 	Expr *marked;
 	if ((marked = find_marked_expr(list->head))) {
-		assert_no_marked_exprs(list->tail);
+		warn_more_marked_exprs(list->tail);
 		return marked;
 	}
 	return find_marked_expr_in_list(list->tail);
@@ -135,7 +128,7 @@ Expr *find_marked_expr(Expr *expr) {
 			break;
 		case EXPR_SEXP:
 			if (found)
-				assert_no_marked_exprs(expr->sexp);
+				warn_more_marked_exprs(expr->sexp);
 			else
 				found = find_marked_expr_in_list(expr->sexp);
 			break;
@@ -256,13 +249,13 @@ bool verify_rule_right(Expr *expr, Expr *marked, Expr *replace, Expr *target, Bi
 	return false;
 }
 
-void verify_transform(Expr *expr, Transform *transform, Expr *rhs, Rules *rules) {
+bool verify_transform(Expr *expr, Transform *transform, Expr *rhs, Rules *rules) {
 	if (!transform) {
 		if (!expr_equals(expr, rhs)) {
-			printf("ERROR: Transformed expression is not RHS.\n");
-			exit(1);
+			printf("** ERROR ** Transformed expression is not RHS.\n");
+			return false;
 		}
-		return;
+		return true;
 	}
 
 	switch (transform->tag) {
@@ -270,10 +263,10 @@ void verify_transform(Expr *expr, Transform *transform, Expr *rhs, Rules *rules)
 			Expr *marked = find_marked_expr(expr);
 			if (!marked) marked = expr;
 
-			Rule *rule = find_rule(rules, transform->name);
+			Rule *rule = find_rule(transform->name, rules);
 			if (!rule) {
-				printf("ERROR: There is no rule with name %s.", transform->name);
-				exit(1);
+				printf("** ERROR ** There is no rule with name %s.", transform->name);
+				return false;
 			}
 
 			size_t params_count = ident_list_count(rule->params);
@@ -283,60 +276,67 @@ void verify_transform(Expr *expr, Transform *transform, Expr *rhs, Rules *rules)
 			Expr *rule_rhs = transform->reversed ? rule->lhs : rule->rhs;
 
 			if (!verify_rule_left(marked, rule_lhs, rule->params, bindings)) {
-				printf("ERROR: Expression doesn't match rule.\n");
+				printf("** ERROR ** Expression doesn't match rule.\n");
 				print_expr(marked); print_expr(rule_lhs);
-				exit(1);
+				free(bindings);
+				return false;
 			}
 			/* debug_bindings(bindings); */
 
 			Expr *target = transform->target ? transform->target : rhs;
 			if (!verify_rule_right(expr, marked, rule_rhs, target, bindings)) {
-				printf("ERROR: Transformed expression doesn't match target.\n");
+				printf("** ERROR ** Transformed expression doesn't match target.\n");
 				print_expr(expr); print_expr(rule_rhs); print_expr(target);
-				exit(1);
+				free(bindings);
+				return false;
 			}
 
 			free(bindings);
 			break;
-		case TRANSFORM_INDUCTION: printf("not implemented\n"); exit(2);
+		case TRANSFORM_INDUCTION: printf("not implemented\n"); return false;
 		case TRANSFORM_TODO:
 			break;
 	}
 
 	if (transform->target) {
-		verify_transform(transform->target, transform->next, rhs, rules);
+		return verify_transform(transform->target, transform->next, rhs, rules);
 	}
+
+	return true;
 }
 
-void verify_proof_direct(ProofDirect *proof, Expr *lhs, Expr *rhs, Rules *rules) {
+bool verify_proof_direct(ProofDirect *proof, Expr *lhs, Expr *rhs, Rules *rules) {
 	Expr *start = proof->start;
 	if (start) {
 		if (!expr_equals(start, lhs)) {
-			printf("ERROR: Starting expression does not equal LHS.\n");
+			printf("** ERROR ** Starting expression does not equal LHS.\n");
 			print_expr(start);
 			print_expr(lhs);
-			exit(1);
+			return false;
 		}
 	} else {
 		start = lhs;
 	}
 
-	verify_transform(start, proof->transform, rhs, rules);
+	return verify_transform(start, proof->transform, rhs, rules);
 }
 
-void verify_proof(Proof *proof, IdentList *, Expr *lhs, Expr *rhs, Rules *rules) {
+bool verify_proof(Proof *proof, IdentList *, Expr *lhs, Expr *rhs, Rules *rules) {
 	switch (proof->tag) {
 		case PROOF_DIRECT:
-			verify_proof_direct(&proof->direct, lhs, rhs, rules);
-			break;
+			return verify_proof_direct(&proof->direct, lhs, rhs, rules);
 		case PROOF_INDUCTION:
-			printf("ERROR: Not yet implemented: 'proof by induction'\n");
-			exit(2);
+			printf("** TODO ** Not yet implemented: 'proof by induction'\n");
+			return false;
 	}
+	return false;
 }
 
-void verify_define(Define *define, Rules *rules) {
-	assert_unique_name(define->name, rules);
+bool verify_define(Define *define, Rules *rules) {
+	if (find_rule(define->name, rules)) {
+		printf("** ERROR ** Duplicate name %s.\n", define->name);
+		return false;
+	}
 
 	if (find_marked_expr(define->lhs)) {
 		printf("WARN: LHS of define %s contains mark: ", define->name);
@@ -350,10 +350,15 @@ void verify_define(Define *define, Rules *rules) {
 	}
 
 	add_rule(rules, define->name, define->params, define->lhs, define->rhs);
+
+	return true;
 }
 
-void verify_theorem(Theorem *theorem, Rules *rules) {
-	assert_unique_name(theorem->name, rules);
+bool verify_theorem(Theorem *theorem, Rules *rules) {
+	if (find_rule(theorem->name, rules)) {
+		printf("** ERROR ** Duplicate name %s.\n", theorem->name);
+		return false;
+	}
 
 	if (find_marked_expr(theorem->lhs)) {
 		printf("WARN: LHS of theorem %s contains mark: ", theorem->name);
@@ -366,12 +371,15 @@ void verify_theorem(Theorem *theorem, Rules *rules) {
 		unmark_expr(theorem->rhs);
 	}
 
-	verify_proof(theorem->proof, theorem->params, theorem->lhs, theorem->rhs, rules);
+	if (!verify_proof(theorem->proof, theorem->params, theorem->lhs, theorem->rhs, rules))
+		return false;
 
 	add_rule(rules, theorem->name, theorem->params, theorem->lhs, theorem->rhs);
+
+	return true;
 }
 
-void verify_example(Example *example, Rules *rules) {
+bool verify_example(Example *example, Rules *rules) {
 	if (find_marked_expr(example->lhs)) {
 		printf("WARN: LHS of an example contains mark: ");
 		print_expr(example->lhs);
@@ -383,7 +391,7 @@ void verify_example(Example *example, Rules *rules) {
 		unmark_expr(example->rhs);
 	}
 
-	verify_proof(example->proof, nullptr, example->lhs, example->rhs, rules);
+	return verify_proof(example->proof, nullptr, example->lhs, example->rhs, rules);
 }
 
 size_t count_rules(Program *program) {
@@ -400,51 +408,56 @@ size_t count_rules(Program *program) {
 	return plus + count_rules(program->rest);
 }
 
-void verify_program(Program *program, Rules *rules) {
-	if (!program) return;
+bool verify_program(Program *program, Rules *rules) {
+	if (!program) return true;
 
 	switch (program->toplevel.tag) {
 		case TOPLEVEL_DEFINE:
-			verify_define(&program->toplevel.define, rules);
+			if (!verify_define(&program->toplevel.define, rules))
+				return false;
 			break;
 		case TOPLEVEL_THEOREM:
-			verify_theorem(&program->toplevel.theorem, rules);
+			if (!verify_theorem(&program->toplevel.theorem, rules))
+				return false;
 			break;
 		case TOPLEVEL_EXAMPLE:
-			verify_example(&program->toplevel.example, rules);
+			if (!verify_example(&program->toplevel.example, rules))
+				return false;
 			break;
 	}
 
-	verify_program(program->rest, rules);
+	return verify_program(program->rest, rules);
 }
 
 int main(int argc, char **argv) {
 	if (argc != 2) {
-		printf("ERROR: Please provide a filename.\n");
+		printf("** ERROR ** Please provide a filename.\n");
 		return 1;
 	}
 
-	printf("*** PARSING ***\n----------------\nSOURCE FILE: `%s`\n", argv[1]);
 	Program *program; 
 	int parse_error = parse(argv[1], &program);
-	if (!parse_error) printf("SUCCESS\n");
 
 	if (false) {
-		printf("\n*** DEBUG PRINT ***\n-------------------\n");
+		printf("\n** DEBUG PRINT **\n-------------------\n");
 		print_program(program);
 	}
-	if (parse_error) return parse_error;
 
-	printf("\n*** VERIFY ***\n----------------\n");
+	if (parse_error) {
+		free_program(program);
+		return parse_error;
+	}
 
 	size_t rule_count = count_rules(program);
 	Rules *rules = allocate_rules(rule_count);
 
-	verify_program(program, rules);
-	printf("SUCCESS\n");
+	int status = verify_program(program, rules) ? 0 : 1;
+	if (!status) {
+		printf("correct.\n");
+	}
 
 	free_program(program);
 	free(rules);
 
-	return 0;
+	return status;
 }

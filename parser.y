@@ -149,8 +149,8 @@ expr_list:
 int parse(char *filename, Program **ast) {
    yyin = fopen(filename, "r");
    if (yyin == NULL){
-      printf("ERROR: can't read file %s\n", filename);
-      exit(1);
+      printf("** ERROR ** Can't read file %s.\n", filename);
+      return 1;
    }
 
    int success = yyparse();
