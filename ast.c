@@ -107,21 +107,21 @@ void free_example(Example *example) {
 
 IdentList *new_ident_list(Ident ident, IdentList *tail) {
 	IdentList *idents = malloc(sizeof(IdentList));
-	idents->ident = ident;
+	idents->head = ident;
 	idents->tail = tail;
 	return idents;
 }
 
 void free_ident_list(IdentList *ident_list) {
 	if (!ident_list) return;
-	free(ident_list->ident);
+	free(ident_list->head);
 	free_ident_list(ident_list->tail);
 	free(ident_list);
 }
 
 bool ident_list_contains(Ident ident, IdentList *list) {
 	if (!list) return false;
-	if (!strcmp(ident, list->ident)) return true;
+	if (!strcmp(ident, list->head)) return true;
 	return ident_list_contains(ident, list->tail);
 }
 

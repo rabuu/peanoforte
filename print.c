@@ -11,7 +11,7 @@ void print_proof(Proof *proof);
 
 void _print_ident_list(IdentList *idents) {
 	if (!idents) return;
-	printf("%s", idents->ident);
+	printf("%s", idents->head);
 	if (idents->tail) printf(" ");
 	_print_ident_list(idents->tail);
 }

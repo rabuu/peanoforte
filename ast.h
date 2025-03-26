@@ -5,7 +5,7 @@
 typedef char* Ident;
 
 typedef struct _IdentList {
-	Ident ident;
+	Ident head;
 	struct _IdentList *tail;
 } IdentList;
 
