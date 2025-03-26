@@ -130,18 +130,19 @@ size_t ident_list_count(IdentList *params) {
 	return 1 + ident_list_count(params->tail);
 }
 
-Expr *new_expr_num(int num, bool marked) {
+Expr *new_expr_zero(bool marked) {
 	Expr *expr = malloc(sizeof(Expr));
-	if (num == 0) {
-		expr->tag = EXPR_ZERO;
-	} else {
-		expr->tag = EXPR_SEXP;
-		ExprList *rec = new_expr_list(new_expr_num(num - 1, false), nullptr);
-		ExprList *sexp = new_expr_list(new_expr_var("succ", false), rec);
-		expr->sexp = sexp;
-	}
+	expr->tag = EXPR_ZERO;
 	expr->marked = marked;
 	return expr;
+}
+
+Expr *new_expr_num(int num, bool marked) {
+	if (num < 0) return nullptr;
+	if (num == 0) return new_expr_zero(marked);
+
+	Expr *one_lower = new_expr_num(num - 1, false);
+	return new_expr_succ(one_lower, marked);
 }
 
 Expr *new_expr_var(Ident var, bool marked) {
@@ -158,6 +159,13 @@ Expr *new_expr_sexp(ExprList *sexp, bool marked) {
 	expr->sexp = sexp;
 	expr->marked = marked;
 	return expr;
+}
+
+Expr *new_expr_succ(Expr *inner, bool marked) {
+	Ident succ_ident = strdup("succ");
+	Expr *succ_expr = new_expr_var(succ_ident, false);
+	ExprList *sexp = new_expr_list(succ_expr, new_expr_list(inner, nullptr));
+	return new_expr_sexp(sexp, marked);
 }
 
 void free_expr(Expr *expr) {
