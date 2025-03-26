@@ -295,6 +295,8 @@ void verify_transform(Expr *expr, Transform *transform, Expr *rhs, Rules *rules)
 				print_expr(expr); print_expr(rule_rhs); print_expr(target);
 				exit(1);
 			}
+
+			free(bindings);
 			break;
 		case TRANSFORM_INDUCTION: printf("not implemented\n"); exit(2);
 		case TRANSFORM_TODO:
@@ -440,6 +442,9 @@ int main(int argc, char **argv) {
 
 	verify_program(program, rules);
 	printf("SUCCESS\n");
+
+	free_program(program);
+	free(rules);
 
 	return 0;
 }

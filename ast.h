@@ -106,23 +106,33 @@ typedef struct _Program {
 
 
 Program *new_program(TopLevel toplevel, Program *rest);
+void free_program(Program *program);
 TopLevel new_toplevel_define(Define define);
 TopLevel new_toplevel_theorem(Theorem theorem);
 TopLevel new_toplevel_example(Example example);
+void free_toplevel(TopLevel *toplevel);
+Define new_define(Ident name, IdentList *params, Expr *lhs, Expr *rhs);
+void free_define(Define *define);
+Theorem new_theorem(Ident name, IdentList *params, Expr *lhs, Expr *rhs, Proof *proof);
+void free_theorem(Theorem *theorem);
+Example new_example(Expr *lhs, Expr *rhs, Proof *proof);
+void free_example(Example *example);
 IdentList *new_ident_list(Ident ident, IdentList *tail);
+void free_ident_list(IdentList *ident_list);
 size_t ident_list_count(IdentList *list);
 bool ident_list_contains(Ident ident, IdentList *list);
-Define new_define(Ident name, IdentList *params, Expr *lhs, Expr *rhs);
-Theorem new_theorem(Ident name, IdentList *params, Expr *lhs, Expr *rhs, Proof *proof);
-Example new_example(Expr *lhs, Expr *rhs, Proof *proof);
 Expr *new_expr_num(int num, bool marked);
 Expr *new_expr_var(Ident var, bool marked);
 Expr *new_expr_sexp(ExprList *sexp, bool marked);
+void free_expr(Expr *expr);
 ExprList *new_expr_list(Expr *expr, ExprList *tail);
+void free_expr_list(ExprList *expr_list);
 Proof *new_proof_direct(Expr *start, Transform *transform);
 Proof *new_proof_induction(Ident var, Proof *base, Proof *step);
+void free_proof(Proof *proof);
 Transform *new_transform_named(Ident name, bool reversed, Expr *target, Transform *next);
 Transform *new_transform_induction(Expr *target, Transform *next);
 Transform *new_transform_todo(Expr *target, Transform *next);
+void free_transform(Transform *transform);
 
 #endif // !AST_H
