@@ -1,0 +1,17 @@
+define identity <a> (id a) = a
+
+example x = x {
+	x
+	by rev identity
+	([id] x)
+	by rev identity
+	((id id) x)
+	by rev identity
+	(id ([id id] x))
+	by identity
+	(id (id x))
+	by identity
+	(id x)
+	by identity
+	x
+}
