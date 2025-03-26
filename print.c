@@ -2,7 +2,6 @@
 #include "ast.h"
 
 #include <stdio.h>
-#include <stdlib.h>
 
 /* forward declarations */
 void _print_expr(Expr *expr);

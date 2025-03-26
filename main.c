@@ -388,7 +388,6 @@ bool verify_proof(Proof *proof, IdentList *params, Expr *lhs, Expr *rhs, Rules *
 			return verify_proof_direct(&proof->direct, lhs, rhs, rules);
 		case PROOF_INDUCTION:
 			return verify_proof_induction(&proof->induction, params, lhs, rhs, rules);
-			return false;
 	}
 	return false;
 }
