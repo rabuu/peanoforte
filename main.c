@@ -20,6 +20,11 @@ typedef struct {
 } Rules;
 
 typedef struct {
+	Expr *lhs;
+	Expr *rhs;
+} InductionRule;
+
+typedef struct {
 	Ident param;
 	Expr *expr;
 } Binding;
@@ -281,7 +286,7 @@ bool verify_rule_right(Expr *expr, Expr *marked, Expr *replace, Expr *target, Bi
 	return false;
 }
 
-bool verify_transform(Expr *expr, Transform *transform, Expr *rhs, Rules *rules) {
+bool verify_transform(Expr *expr, Transform *transform, Expr *rhs, Rules *rules, InductionRule *induction_rule) {
 	if (!transform) {
 		if (!expr_equals(expr, rhs)) {
 			printf("** ERROR ** Transformed expression is not RHS.\n");
@@ -325,19 +330,40 @@ bool verify_transform(Expr *expr, Transform *transform, Expr *rhs, Rules *rules)
 
 			free(bindings);
 			break;
-		case TRANSFORM_INDUCTION: printf("not implemented\n"); return false;
+		case TRANSFORM_INDUCTION:
+			if (!induction_rule) {
+				printf("** ERROR ** Can't apply induction in a direct proof.\n");
+				return false;
+			}
+
+			marked = find_marked_expr(expr);
+			if (!marked) marked = expr;
+
+			if (!expr_equals(marked, induction_rule->lhs)) {
+				printf("** ERROR ** Expression doesn't match induction rule.\n");
+				print_expr(marked); print_expr(induction_rule->lhs);
+				return false;
+			}
+
+			target = transform->target ? transform->target : rhs;
+			if (!verify_rule_right(expr, marked, induction_rule->rhs, target, nullptr)) {
+				printf("** ERROR ** Transformed expression doesn't match induction target.\n");
+				print_expr(expr); print_expr(induction_rule->rhs); print_expr(target);
+				return false;
+			}
+			break;
 		case TRANSFORM_TODO:
 			break;
 	}
 
 	if (transform->target) {
-		return verify_transform(transform->target, transform->next, rhs, rules);
+		return verify_transform(transform->target, transform->next, rhs, rules, induction_rule);
 	}
 
 	return true;
 }
 
-bool verify_proof_direct(Direct *direct, Expr *lhs, Expr *rhs, Rules *rules) {
+bool verify_proof_direct(Direct *direct, Expr *lhs, Expr *rhs, Rules *rules, InductionRule *induction_rule) {
 	Expr *start = direct->start;
 	if (start) {
 		if (!expr_equals(start, lhs)) {
@@ -350,7 +376,7 @@ bool verify_proof_direct(Direct *direct, Expr *lhs, Expr *rhs, Rules *rules) {
 		start = lhs;
 	}
 
-	return verify_transform(start, direct->transform, rhs, rules);
+	return verify_transform(start, direct->transform, rhs, rules, induction_rule);
 }
 
 bool verify_proof_induction(Induction *induction, IdentList *params, Expr *lhs, Expr *rhs, Rules *rules) {
@@ -359,9 +385,14 @@ bool verify_proof_induction(Induction *induction, IdentList *params, Expr *lhs, 
 		return false;
 	}
 
+	InductionRule induction_rule = (InductionRule) {
+		.lhs = lhs,
+		.rhs = rhs,
+	};
+
 	Expr *base_lhs = clone_expr_and_replace(lhs, new_expr_zero(false), induction->var);
 	Expr *base_rhs = clone_expr_and_replace(rhs, new_expr_zero(false), induction->var);
-	if (!verify_proof_direct(&induction->base, base_lhs, base_rhs, rules))
+	if (!verify_proof_direct(&induction->base, base_lhs, base_rhs, rules, nullptr))
 		return false;
 
 	Expr *step_lhs = clone_expr_and_replace(
@@ -375,7 +406,7 @@ bool verify_proof_induction(Induction *induction, IdentList *params, Expr *lhs, 
 		induction->var
 	);
 
-	if (!verify_proof_direct(&induction->step, step_lhs, step_rhs, rules))
+	if (!verify_proof_direct(&induction->step, step_lhs, step_rhs, rules, &induction_rule))
 		return false;
 
 	return true;
@@ -384,7 +415,7 @@ bool verify_proof_induction(Induction *induction, IdentList *params, Expr *lhs, 
 bool verify_proof(Proof *proof, IdentList *params, Expr *lhs, Expr *rhs, Rules *rules) {
 	switch (proof->tag) {
 		case PROOF_DIRECT:
-			return verify_proof_direct(&proof->direct, lhs, rhs, rules);
+			return verify_proof_direct(&proof->direct, lhs, rhs, rules, nullptr);
 		case PROOF_INDUCTION:
 			return verify_proof_induction(&proof->induction, params, lhs, rhs, rules);
 	}
