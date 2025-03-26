@@ -33,8 +33,10 @@ typedef struct {
 Expr *find_marked_expr(Expr *expr);
 void unmark_expr(Expr *expr);
 bool expr_matches_pattern(Expr *expr, Expr *pattern, Bindings *bindings);
+Expr *clone_expr_and_replace(Expr *orig, Expr *replacement, Ident param);
 bool verify_rule_left(Expr *expr, Expr *pattern, IdentList *params, Bindings *bindings);
 bool verify_rule_right(Expr *expr, Expr *marked, Expr *replace, Expr *target, Bindings *bindings);
+bool verify_proof(Proof *proof, IdentList *params, Expr *lhs, Expr *rhs, Rules *rules);
 
 Rules *allocate_rules(size_t len) {
 	Rules *rules = malloc(sizeof(Rules) + len * sizeof(Rule));
@@ -150,6 +152,36 @@ void unmark_expr(Expr *expr) {
 	if (expr->tag == EXPR_SEXP) {
 		unmark_expr_list(expr->sexp);
 	}
+}
+
+ExprList *clone_expr_list_and_replace(ExprList *orig, Expr *replacement, Ident param) {
+	if (!orig) return nullptr;
+
+	Expr *new_head = clone_expr_and_replace(orig->head, replacement, param);
+	ExprList *new_tail = clone_expr_list_and_replace(orig->tail, replacement, param);
+
+	return new_expr_list(new_head, new_tail);
+}
+
+Expr *clone_expr_and_replace(Expr *orig, Expr *replacement, Ident param) {
+	if (!orig) return nullptr;
+
+	switch (orig->tag) {
+		case EXPR_ZERO:
+			return new_expr_zero(orig->marked);
+		case EXPR_VAR:
+			if (replacement) {
+				if (!strcmp(orig->var, param)) {
+					return clone_expr_and_replace(replacement, nullptr, nullptr);
+				}
+			}
+			return new_expr_var(strdup(orig->var), orig->marked);
+		case EXPR_SEXP:
+			ExprList *sexp = clone_expr_list_and_replace(orig->sexp, replacement, param);
+			return new_expr_sexp(sexp, orig->marked);
+	}
+
+	return nullptr;
 }
 
 bool expr_list_matches_pattern(ExprList *expr_list, ExprList *pattern_list, Bindings *bindings) {
@@ -321,12 +353,41 @@ bool verify_proof_direct(ProofDirect *proof, Expr *lhs, Expr *rhs, Rules *rules)
 	return verify_transform(start, proof->transform, rhs, rules);
 }
 
-bool verify_proof(Proof *proof, IdentList *, Expr *lhs, Expr *rhs, Rules *rules) {
+bool verify_proof_induction(ProofInduction *proof, IdentList *params, Expr *lhs, Expr *rhs, Rules *rules) {
+	if (!ident_list_contains(proof->var, params)) {
+		printf("** ERROR ** Induction over %s not possible.", proof->var);
+		return false;
+	}
+
+	Expr *base_lhs = clone_expr_and_replace(lhs, new_expr_zero(false), proof->var);
+	Expr *base_rhs = clone_expr_and_replace(rhs, new_expr_zero(false), proof->var);
+	if (!verify_proof(proof->base, params, base_lhs, base_rhs, rules)) {
+		return false;
+	}
+
+	Expr *step_lhs = clone_expr_and_replace(
+		lhs,
+		new_expr_succ(new_expr_var(strdup(proof->var), false), false),
+		proof->var
+	);
+	Expr *step_rhs = clone_expr_and_replace(
+		rhs,
+		new_expr_succ(new_expr_var(strdup(proof->var), false), false),
+		proof->var
+	);
+
+	if (!verify_proof(proof->step, params, step_lhs, step_rhs, rules)) {
+		return false;
+	}
+	return false;
+}
+
+bool verify_proof(Proof *proof, IdentList *params, Expr *lhs, Expr *rhs, Rules *rules) {
 	switch (proof->tag) {
 		case PROOF_DIRECT:
 			return verify_proof_direct(&proof->direct, lhs, rhs, rules);
 		case PROOF_INDUCTION:
-			printf("** TODO ** Not yet implemented: 'proof by induction'\n");
+			return verify_proof_induction(&proof->induction, params, lhs, rhs, rules);
 			return false;
 	}
 	return false;
