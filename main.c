@@ -361,9 +361,8 @@ bool verify_proof_induction(Induction *induction, IdentList *params, Expr *lhs, 
 
 	Expr *base_lhs = clone_expr_and_replace(lhs, new_expr_zero(false), induction->var);
 	Expr *base_rhs = clone_expr_and_replace(rhs, new_expr_zero(false), induction->var);
-	if (!verify_proof_direct(&induction->base, base_lhs, base_rhs, rules)) {
+	if (!verify_proof_direct(&induction->base, base_lhs, base_rhs, rules))
 		return false;
-	}
 
 	Expr *step_lhs = clone_expr_and_replace(
 		lhs,
@@ -376,10 +375,10 @@ bool verify_proof_induction(Induction *induction, IdentList *params, Expr *lhs, 
 		induction->var
 	);
 
-	if (!verify_proof_direct(&induction->step, step_lhs, step_rhs, rules)) {
+	if (!verify_proof_direct(&induction->step, step_lhs, step_rhs, rules))
 		return false;
-	}
-	return false;
+
+	return true;
 }
 
 bool verify_proof(Proof *proof, IdentList *params, Expr *lhs, Expr *rhs, Rules *rules) {
