@@ -10,10 +10,10 @@ Program *new_program(TopLevel toplevel, Program *rest) {
 	return program;
 }
 
-TopLevel new_toplevel_axiom(Axiom axiom) {
+TopLevel new_toplevel_define(Define define) {
 	return (TopLevel) {
-		.tag = TOPLEVEL_AXIOM,
-		.axiom = axiom,
+		.tag = TOPLEVEL_DEFINE,
+		.define = define,
 	};
 }
 
@@ -49,8 +49,8 @@ size_t ident_list_count(IdentList *params) {
 	return 1 + ident_list_count(params->tail);
 }
 
-Axiom new_axiom(Ident name, IdentList *params, Expr *lhs, Expr *rhs) {
-	return (Axiom) {
+Define new_define(Ident name, IdentList *params, Expr *lhs, Expr *rhs) {
+	return (Define) {
 		.name = name,
 		.params = params,
 		.lhs = lhs,

@@ -103,14 +103,14 @@ void print_proof(Proof *proof) {
 	}
 }
 
-void print_axiom(Axiom *axiom) {
-	printf("AXIOM %s ", axiom->name);
-	if (axiom->params) printf("<");
-	_print_ident_list(axiom->params);
-	if (axiom->params) printf("> ");
-	_print_expr(axiom->lhs);
+void print_define(Define *define) {
+	printf("DEFINE %s ", define->name);
+	if (define->params) printf("<");
+	_print_ident_list(define->params);
+	if (define->params) printf("> ");
+	_print_expr(define->lhs);
 	printf(" = ");
-	print_expr(axiom->rhs);
+	print_expr(define->rhs);
 }
 
 void print_theorem(Theorem *theorem) {
@@ -139,7 +139,7 @@ void print_toplevel(TopLevel *toplevel) {
 	}
 
 	switch (toplevel->tag) {
-		case TOPLEVEL_AXIOM: print_axiom(&toplevel->axiom); break;
+		case TOPLEVEL_DEFINE: print_define(&toplevel->define); break;
 		case TOPLEVEL_THEOREM: print_theorem(&toplevel->theorem); break;
 		case TOPLEVEL_EXAMPLE: print_example(&toplevel->example); break;
 	}

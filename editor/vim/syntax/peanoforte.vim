@@ -2,7 +2,7 @@ if exists("b:current_syntax")
 	finish
 end
 
-syn keyword peanoforteKeyword axiom theorem example base step induction by rev
+syn keyword peanoforteKeyword define theorem example base step induction by rev
 syn keyword peanoforteTodo todo
 syn keyword peanoforteOperator succ
 syn keyword peanoforteZero 0

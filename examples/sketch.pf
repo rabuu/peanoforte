@@ -1,5 +1,5 @@
-axiom addition-neutrum<a> (add a 0) = a
-axiom addition<a b> (add a (succ b)) = (succ (add a b))
+define addition-neutrum<a> (add a 0) = a
+define addition<a b> (add a (succ b)) = (succ (add a b))
 
 example (add 1 1) = 2 {
 	(add 1 1)

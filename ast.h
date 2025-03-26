@@ -70,7 +70,7 @@ typedef struct {
 	IdentList *params;
 	Expr *lhs;
 	Expr *rhs;
-} Axiom;
+} Define;
 
 typedef struct {
 	Ident name;
@@ -88,12 +88,12 @@ typedef struct {
 
 typedef struct {
 	enum {
-		TOPLEVEL_AXIOM,
+		TOPLEVEL_DEFINE,
 		TOPLEVEL_THEOREM,
 		TOPLEVEL_EXAMPLE,
 	} tag;
 	union {
-		Axiom axiom;
+		Define define;
 		Theorem theorem;
 		Example example;
 	};
@@ -106,13 +106,13 @@ typedef struct _Program {
 
 
 Program *new_program(TopLevel toplevel, Program *rest);
-TopLevel new_toplevel_axiom(Axiom axiom);
+TopLevel new_toplevel_define(Define define);
 TopLevel new_toplevel_theorem(Theorem theorem);
 TopLevel new_toplevel_example(Example example);
 IdentList *new_ident_list(Ident ident, IdentList *tail);
 size_t ident_list_count(IdentList *list);
 bool ident_list_contains(Ident ident, IdentList *list);
-Axiom new_axiom(Ident name, IdentList *params, Expr *lhs, Expr *rhs);
+Define new_define(Ident name, IdentList *params, Expr *lhs, Expr *rhs);
 Theorem new_theorem(Ident name, IdentList *params, Expr *lhs, Expr *rhs, Proof *proof);
 Example new_example(Expr *lhs, Expr *rhs, Proof *proof);
 Expr *new_expr_num(int num, bool marked);

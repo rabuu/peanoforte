@@ -10,7 +10,7 @@ IDENT [_]?[a-zA-Z][-a-zA-Z0-9]*
 
 %%
 
-"axiom" { return KW_AXIOM; }
+"define" { return KW_DEFINE; }
 "theorem" { return KW_THEOREM; }
 "example" { return KW_EXAMPLE; }
 "induction" { return KW_INDUCTION; }

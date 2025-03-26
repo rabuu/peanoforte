@@ -333,21 +333,21 @@ void verify_proof(Proof *proof, IdentList *, Expr *lhs, Expr *rhs, Rules *rules)
 	}
 }
 
-void verify_axiom(Axiom *axiom, Rules *rules) {
-	assert_unique_name(axiom->name, rules);
+void verify_define(Define *define, Rules *rules) {
+	assert_unique_name(define->name, rules);
 
-	if (find_marked_expr(axiom->lhs)) {
-		printf("WARN: LHS of axiom %s contains mark: ", axiom->name);
-		print_expr(axiom->lhs);
-		unmark_expr(axiom->lhs);
+	if (find_marked_expr(define->lhs)) {
+		printf("WARN: LHS of define %s contains mark: ", define->name);
+		print_expr(define->lhs);
+		unmark_expr(define->lhs);
 	}
-	if (find_marked_expr(axiom->rhs)) {
-		printf("WARN: RHS of axiom %s contains mark: ", axiom->name);
-		print_expr(axiom->rhs);
-		unmark_expr(axiom->rhs);
+	if (find_marked_expr(define->rhs)) {
+		printf("WARN: RHS of define %s contains mark: ", define->name);
+		print_expr(define->rhs);
+		unmark_expr(define->rhs);
 	}
 
-	add_rule(rules, axiom->name, axiom->params, axiom->lhs, axiom->rhs);
+	add_rule(rules, define->name, define->params, define->lhs, define->rhs);
 }
 
 void verify_theorem(Theorem *theorem, Rules *rules) {
@@ -388,7 +388,7 @@ size_t count_rules(Program *program) {
 	if (!program) return 0;
 	size_t plus = 0;
 	switch (program->toplevel.tag) {
-		case TOPLEVEL_AXIOM:
+		case TOPLEVEL_DEFINE:
 		case TOPLEVEL_THEOREM:
 			plus = 1;
 			break;
@@ -402,8 +402,8 @@ void verify_program(Program *program, Rules *rules) {
 	if (!program) return;
 
 	switch (program->toplevel.tag) {
-		case TOPLEVEL_AXIOM:
-			verify_axiom(&program->toplevel.axiom, rules);
+		case TOPLEVEL_DEFINE:
+			verify_define(&program->toplevel.define, rules);
 			break;
 		case TOPLEVEL_THEOREM:
 			verify_theorem(&program->toplevel.theorem, rules);

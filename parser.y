@@ -13,7 +13,7 @@
    int num;
    Program *program;
    TopLevel toplevel;
-   Axiom axiom;
+   Define define;
    Theorem theorem;
    Example example;
    Ident ident;
@@ -28,7 +28,7 @@
 
 %start program
 
-%token KW_AXIOM KW_THEOREM KW_EXAMPLE KW_INDUCTION KW_BASE KW_STEP KW_TODO KW_BY KW_REV
+%token KW_DEFINE KW_THEOREM KW_EXAMPLE KW_INDUCTION KW_BASE KW_STEP KW_TODO KW_BY KW_REV
 %token PAREN_OPEN PAREN_CLOSE BRACKET_OPEN BRACKET_CLOSE
 %token CURLY_OPEN CURLY_CLOSE ANGLE_OPEN ANGLE_CLOSE EQUALS
 
@@ -37,7 +37,7 @@
 
 %type <program> program;
 %type <toplevel> toplevel;
-%type <axiom> axiom;
+%type <define> define;
 %type <theorem> theorem;
 %type <example> example;
 %type <ident_list> parameters;
@@ -56,17 +56,17 @@ program:
 ;
 
 toplevel:
-  axiom { $$ = new_toplevel_axiom($1); }
+  define { $$ = new_toplevel_define($1); }
 | theorem { $$ = new_toplevel_theorem($1); }
 | example { $$ = new_toplevel_example($1); }
 ;
 
-axiom:
-  KW_AXIOM IDENT expr EQUALS expr {
-    $$ = new_axiom($2, nullptr, $3, $5);
+define:
+  KW_DEFINE IDENT expr EQUALS expr {
+    $$ = new_define($2, nullptr, $3, $5);
 }
-| KW_AXIOM IDENT ANGLE_OPEN parameters ANGLE_CLOSE expr EQUALS expr {
-    $$ = new_axiom($2, $4, $6, $8);
+| KW_DEFINE IDENT ANGLE_OPEN parameters ANGLE_CLOSE expr EQUALS expr {
+    $$ = new_define($2, $4, $6, $8);
 }
 ;
 
