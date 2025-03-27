@@ -1,26 +1,12 @@
 define add-zero<a> (add a 0) = a
 define add<a b> (add a (succ b)) = (succ (add a b))
 
-example (add 1 1) = 2 {
-	(add 1 1)
-	by add
-	(succ [add 1 0])
-	by add-zero
-	(succ 1)
-}
-
 theorem add-one<a> (add a 1) = (succ a) {
 	(add a 1)
 	by add
 	(succ [add a 0])
 	by add-zero
 	(succ a)
-}
-
-example (add 1 1) = 2 {
-	(add 1 1)
-	by add-one
-	(succ 1)
 }
 
 theorem add-two<a> (add a 2) = (succ (succ a)) {
@@ -80,5 +66,55 @@ induction b {
 		(succ (add b a))
 		by rev add-left
 		(add (succ b) a)
+	}
+}
+
+define mul-zero<a> (mul a 0) = 0
+define mul<a b> (mul a (succ b)) = (add a (mul a b))
+
+theorem mul-zero-left<a> (mul 0 a) = 0
+induction a {
+	base {
+		(mul 0 0)
+		by mul-zero
+		0
+	}
+	step {
+		(mul 0 (succ a))
+		by mul
+		(add 0 (mul 0 a))
+		by add-zero-left
+		(mul 0 a)
+		by induction
+	}
+}
+
+theorem mul-one<a> (mul a 1) = a {
+	(mul a 1)
+	by mul
+	(add a [mul a 0])
+	by mul-zero
+	(add a 0)
+	by add-zero
+	a
+}
+
+theorem mul-one-left<a> (mul 1 a) = a
+induction a {
+	base {
+		(mul 1 0)
+		by mul-zero
+		0
+	}
+	step {
+		(mul 1 (succ a))
+		by mul
+		(add 1 [mul 1 a])
+		by induction
+		(add 1 a)
+		by add-left
+		(succ [add 0 a])
+		by add-zero-left
+		(succ a)
 	}
 }
