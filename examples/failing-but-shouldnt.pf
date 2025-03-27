@@ -1,0 +1,5 @@
+define foo<a> (foo a) = 0
+
+example 0 = (foo 1) {
+	by rev foo
+}
