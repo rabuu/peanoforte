@@ -2,106 +2,105 @@
 #define AST_H
 
 #include <stddef.h>
-typedef char* Ident;
+typedef char *Ident;
 
 typedef struct _IdentList {
-	Ident head;
-	struct _IdentList *tail;
+    Ident head;
+    struct _IdentList *tail;
 } IdentList;
 
 typedef struct _ExprList ExprList;
 
 typedef struct {
-	enum {
-		EXPR_ZERO,
-		EXPR_VAR,
-		EXPR_SEXP,
-	} tag;
-	union {
-		Ident var;
-		ExprList *sexp;
-	};
-	bool marked;
+    enum {
+        EXPR_ZERO,
+        EXPR_VAR,
+        EXPR_SEXP,
+    } tag;
+    union {
+        Ident var;
+        ExprList *sexp;
+    };
+    bool marked;
 } Expr;
 
 struct _ExprList {
-	Expr *head;
-	struct _ExprList *tail;
+    Expr *head;
+    struct _ExprList *tail;
 };
 
 typedef struct _Transform {
-	enum {
-		TRANSFORM_NAMED,
-		TRANSFORM_INDUCTION,
-		TRANSFORM_TODO,
-	} tag;
-	Ident name;
-	bool reversed;
-	Expr *target;
-	struct _Transform *next;
+    enum {
+        TRANSFORM_NAMED,
+        TRANSFORM_INDUCTION,
+        TRANSFORM_TODO,
+    } tag;
+    Ident name;
+    bool reversed;
+    Expr *target;
+    struct _Transform *next;
 } Transform;
 
 typedef struct {
-	Expr *start;
-	Transform *transform;
+    Expr *start;
+    Transform *transform;
 } Direct;
 
 typedef struct {
-	Ident var;
-	Direct base;
-	Direct step;
+    Ident var;
+    Direct base;
+    Direct step;
 } Induction;
 
 typedef struct {
-	enum {
-		PROOF_DIRECT,
-		PROOF_INDUCTION,
-	} tag;
-	union {
-		Direct direct;
-		Induction induction;
-	};
+    enum {
+        PROOF_DIRECT,
+        PROOF_INDUCTION,
+    } tag;
+    union {
+        Direct direct;
+        Induction induction;
+    };
 } Proof;
 
 typedef struct {
-	Ident name;
-	IdentList *params;
-	Expr *lhs;
-	Expr *rhs;
+    Ident name;
+    IdentList *params;
+    Expr *lhs;
+    Expr *rhs;
 } Define;
 
 typedef struct {
-	Ident name;
-	IdentList *params;
-	Expr *lhs;
-	Expr *rhs;
-	Proof proof;
+    Ident name;
+    IdentList *params;
+    Expr *lhs;
+    Expr *rhs;
+    Proof proof;
 } Theorem;
 
 typedef struct {
-	Expr *lhs;
-	Expr *rhs;
-	Proof proof;
+    Expr *lhs;
+    Expr *rhs;
+    Proof proof;
 } Example;
 
 typedef struct {
-	enum {
-		TOPLEVEL_DEFINE,
-		TOPLEVEL_THEOREM,
-		TOPLEVEL_EXAMPLE,
-	} tag;
-	union {
-		Define define;
-		Theorem theorem;
-		Example example;
-	};
+    enum {
+        TOPLEVEL_DEFINE,
+        TOPLEVEL_THEOREM,
+        TOPLEVEL_EXAMPLE,
+    } tag;
+    union {
+        Define define;
+        Theorem theorem;
+        Example example;
+    };
 } TopLevel;
 
 typedef struct _Program {
-	TopLevel toplevel;
-	struct _Program *rest;
+    TopLevel toplevel;
+    struct _Program *rest;
 } Program;
-
 
 Program *new_program(TopLevel toplevel, Program *rest);
 void free_program(Program *program);

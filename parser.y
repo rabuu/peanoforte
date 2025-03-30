@@ -146,17 +146,17 @@ expr_list:
 %%
 
 int parse(char *filename, Program **ast) {
-   yyin = fopen(filename, "r");
-   if (yyin == NULL){
-      printf("** ERROR ** Can't read file %s.\n", filename);
-      return 1;
-   }
+    yyin = fopen(filename, "r");
+    if (yyin == NULL){
+        printf("** ERROR ** Can't read file %s.\n", filename);
+        return 1;
+    }
 
-   int success = yyparse();
-   *ast = program_ast;
-   return success;
+    int success = yyparse();
+    *ast = program_ast;
+    return success;
 }
 
 void yyerror(const char *msg) {
-   printf("** PARSE ERROR ** %s\n", msg);
+    printf("** PARSE ERROR ** %s\n", msg);
 }

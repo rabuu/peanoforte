@@ -1,5 +1,5 @@
 %{
-#include "parser.h"
+  #include "parser.h"
 %}
 
 %option nounput noinput noyywrap
@@ -35,22 +35,22 @@ IDENT [_]?[a-zA-Z][-a-zA-Z0-9]*
 ;.* { }
 
 {DIGIT}+ {
-	yylval.num = atoi(yytext);
-	return NUMBER;
+    yylval.num = atoi(yytext);
+    return NUMBER;
 }
 
 {IDENT} {
-	size_t len = strlen(yytext);
-	char *str = malloc((len + 1) * sizeof(char*));
-	str = strncpy(str, yytext, len);
-	str[len] = '\0';
-	yylval.ident = str;
-	return IDENT;
+    size_t len = strlen(yytext);
+    char *str = malloc((len + 1) * sizeof(char*));
+    str = strncpy(str, yytext, len);
+    str[len] = '\0';
+    yylval.ident = str;
+    return IDENT;
 }
 
 . {
-	printf("** LEX ERROR ** illegal symbol: %s\n", yytext);
-	exit(1);
+    printf("** LEX ERROR ** illegal symbol: %s\n", yytext);
+    exit(1);
 }
 
 %%
