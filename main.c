@@ -37,10 +37,10 @@ typedef struct {
 /* forward declarations */
 Expr *find_marked_expr(Expr *expr);
 void unmark_expr(Expr *expr);
-bool expr_matches_pattern(Expr *expr, Expr *pattern, Bindings *bindings);
+bool expr_matches_pattern(Expr *expr, Expr *pattern, IdentList *params, Bindings *bindings);
 Expr *clone_expr_and_replace(Expr *orig, Expr *replacement, Ident param);
 bool verify_rule_left(Expr *expr, Expr *pattern, IdentList *params, Bindings *bindings);
-bool verify_rule_right(Expr *expr, Expr *marked, Expr *replace, Expr *target, Bindings *bindings);
+bool verify_rule_right(Expr *expr, Expr *marked, Expr *replace, Expr *target, IdentList *params, Bindings *bindings);
 bool verify_proof(Proof *proof, IdentList *params, Expr *lhs, Expr *rhs, Rules *rules);
 
 Rules *allocate_rules(size_t len) {
@@ -189,18 +189,22 @@ Expr *clone_expr_and_replace(Expr *orig, Expr *replacement, Ident param) {
 	return nullptr;
 }
 
-bool expr_list_matches_pattern(ExprList *expr_list, ExprList *pattern_list, Bindings *bindings) {
+bool expr_equals(Expr *a, Expr *b) {
+	return expr_matches_pattern(a, b, nullptr, nullptr);
+}
+
+bool expr_list_matches_pattern(ExprList *expr_list, ExprList *pattern_list, IdentList *params, Bindings *bindings) {
 	if (!expr_list) return !pattern_list;
 	if (!pattern_list) return !expr_list;
 
-	if (expr_matches_pattern(expr_list->head, pattern_list->head, bindings)) {
-		return expr_list_matches_pattern(expr_list->tail, pattern_list->tail, bindings);
+	if (expr_matches_pattern(expr_list->head, pattern_list->head, params, bindings)) {
+		return expr_list_matches_pattern(expr_list->tail, pattern_list->tail, params, bindings);
 	}
 
 	return false;
 }
 
-bool expr_matches_pattern(Expr *expr, Expr *pattern, Bindings *bindings) {
+bool expr_matches_pattern(Expr *expr, Expr *pattern, IdentList *params, Bindings *bindings) {
 	if (!expr) return !pattern;
 	if (!pattern) return !expr;
 
@@ -210,7 +214,11 @@ bool expr_matches_pattern(Expr *expr, Expr *pattern, Bindings *bindings) {
 		case EXPR_VAR:
 			Binding *binding;
 			if ((binding = find_binding(pattern->var, bindings))) {
-				return expr_matches_pattern(expr, binding->expr, nullptr);
+				return expr_equals(expr, binding->expr);
+			}
+			if (ident_list_contains(pattern->var, params)) {
+				add_binding(bindings, pattern->var, expr);
+				return true;
 			}
 			if (expr->tag == EXPR_VAR) {
 				return !strcmp(expr->var, pattern->var);
@@ -218,15 +226,11 @@ bool expr_matches_pattern(Expr *expr, Expr *pattern, Bindings *bindings) {
 			break;
 		case EXPR_SEXP:
 			if (expr->tag == EXPR_SEXP) {
-				return expr_list_matches_pattern(expr->sexp, pattern->sexp, bindings);
+				return expr_list_matches_pattern(expr->sexp, pattern->sexp, params, bindings);
 			}
 			break;
 	}
 	return false;
-}
-
-bool expr_equals(Expr *a, Expr *b) {
-	return expr_matches_pattern(a, b, nullptr);
 }
 
 bool verify_rule_left_sexp(ExprList *expr_list, ExprList *pattern_list, IdentList *params, Bindings *bindings) {
@@ -260,18 +264,18 @@ bool verify_rule_left(Expr *expr, Expr *pattern, IdentList *params, Bindings *bi
 	return false;
 }
 
-bool verify_rule_right_sexp(ExprList *expr_list, Expr *marked, Expr *replace, ExprList *target_list, Bindings *bindings) {
+bool verify_rule_right_sexp(ExprList *expr_list, Expr *marked, Expr *replace, ExprList *target_list, IdentList *params, Bindings *bindings) {
 	if (!expr_list) return !target_list;
 	if (!target_list) return !expr_list;
 
-	if (!verify_rule_right(expr_list->head, marked, replace, target_list->head, bindings))
+	if (!verify_rule_right(expr_list->head, marked, replace, target_list->head, params, bindings))
 		return false;
-	return verify_rule_right_sexp(expr_list->tail, marked, replace, target_list->tail, bindings);
+	return verify_rule_right_sexp(expr_list->tail, marked, replace, target_list->tail, params, bindings);
 }
 
-bool verify_rule_right(Expr *expr, Expr *marked, Expr *replace, Expr *target, Bindings *bindings) {
+bool verify_rule_right(Expr *expr, Expr *marked, Expr *replace, Expr *target, IdentList *params, Bindings *bindings) {
 	if (expr == marked) {
-		return expr_matches_pattern(target, replace, bindings);
+		return expr_matches_pattern(target, replace, params, bindings);
 	}
 	
 	switch (expr->tag) {
@@ -280,7 +284,7 @@ bool verify_rule_right(Expr *expr, Expr *marked, Expr *replace, Expr *target, Bi
 			return expr_equals(expr, target);
 		case EXPR_SEXP:
 			if (target->tag != EXPR_SEXP) return false;
-			return verify_rule_right_sexp(expr->sexp, marked, replace, target->sexp, bindings);
+			return verify_rule_right_sexp(expr->sexp, marked, replace, target->sexp, params, bindings);
 	}
 
 	return false;
@@ -321,7 +325,7 @@ bool verify_transform(Expr *expr, Transform *transform, Expr *rhs, Rules *rules,
 			/* debug_bindings(bindings); */
 
 			Expr *target = transform->target ? transform->target : rhs;
-			if (!verify_rule_right(expr, marked, rule_rhs, target, bindings)) {
+			if (!verify_rule_right(expr, marked, rule_rhs, target, rule->params, bindings)) {
 				printf("** ERROR ** Transformed expression doesn't match target.\n");
 				print_expr(expr); print_expr(rule_rhs); print_expr(target);
 				free(bindings);
@@ -346,7 +350,7 @@ bool verify_transform(Expr *expr, Transform *transform, Expr *rhs, Rules *rules,
 			}
 
 			target = transform->target ? transform->target : rhs;
-			if (!verify_rule_right(expr, marked, induction_rule->rhs, target, nullptr)) {
+			if (!verify_rule_right(expr, marked, induction_rule->rhs, target, nullptr, nullptr)) {
 				printf("** ERROR ** Transformed expression doesn't match induction target.\n");
 				print_expr(expr); print_expr(induction_rule->rhs); print_expr(target);
 				return false;
