@@ -369,6 +369,7 @@ bool verify_transform(Expr *expr, Transform *transform, Expr *rhs, Rules *rules,
         }
         break;
     case TRANSFORM_TODO:
+        printf("WARN: There is still something TODO.\n");
         break;
     }
 
