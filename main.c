@@ -318,16 +318,20 @@ bool verify_transform(Expr *expr, Transform *transform, Expr *rhs, Rules *rules,
 
 			if (!verify_rule_left(marked, rule_lhs, rule->params, bindings)) {
 				printf("** ERROR ** Expression doesn't match rule.\n");
-				print_expr(marked); print_expr(rule_lhs);
+				printf("EXPRESSION: "); print_expr(marked);
+				printf("PATTERN: "); print_expr(rule_lhs);
+				debug_bindings(bindings);
 				free(bindings);
 				return false;
 			}
-			/* debug_bindings(bindings); */
 
 			Expr *target = transform->target ? transform->target : rhs;
 			if (!verify_rule_right(expr, marked, rule_rhs, target, rule->params, bindings)) {
 				printf("** ERROR ** Transformed expression doesn't match target.\n");
-				print_expr(expr); print_expr(rule_rhs); print_expr(target);
+				printf("EXPRESSION: "); print_expr(expr);
+				printf("PATTERN: "); print_expr(rule_rhs);
+				printf("TARGET: "); print_expr(target);
+				debug_bindings(bindings);
 				free(bindings);
 				return false;
 			}
