@@ -127,6 +127,38 @@ induction a {
 	}
 }
 
+theorem mul-left<a b> (mul (succ a) b) = (add b (mul a b))
+induction b {
+	base {
+		(mul (succ a) 0)
+		by mul-zero
+		0
+		by rev add-zero-left
+		(add 0 [0])
+		by rev mul-zero
+		(add 0 (mul a 0))
+	}
+	step {
+		(mul (succ a) (succ b))
+		by mul
+		(add (succ a) [mul (succ a) b])
+		by induction
+		(add (succ a) (add b (mul a b)))
+		by add-left
+		(succ [add a (add b (mul a b))])
+		by rev add-assoc
+		(succ (add [add a b] (mul a b)))
+		by add-comm
+		(succ [add (add b a) (mul a b)])
+		by add-assoc
+		(succ (add b (add a (mul a b))))
+		by rev add-left
+		(add (succ b) [add a (mul a b)])
+		by rev mul
+		(add (succ b) (mul a (succ b)))
+	}
+}
+
 theorem distr<a b c> (mul a (add b c)) = (add (mul a b) (mul a c))
 induction c {
 	base {
@@ -196,7 +228,7 @@ induction b {
 		(add a [mul a b])
 		by induction
 		(add a (mul b a))
-		todo
+		by rev mul-left
 		(mul (succ b) a)
 	}
 }
