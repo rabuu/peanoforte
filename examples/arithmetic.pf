@@ -1,5 +1,10 @@
+define id<a> a = a
+
 define add-zero<a> (add a 0) = a
 define add<a b> (add a (succ b)) = (succ (add a b))
+
+define mul-zero<a> (mul a 0) = 0
+define mul<a b> (mul a (succ b)) = (add a (mul a b))
 
 theorem add-assoc<a b c> (add (add a b) c) = (add a (add b c))
 induction c {
@@ -74,9 +79,6 @@ induction b {
 		(add (succ b) a)
 	}
 }
-
-define mul-zero<a> (mul a 0) = 0
-define mul<a b> (mul a (succ b)) = (add a (mul a b))
 
 theorem mul-zero-left<a> (mul 0 a) = 0
 induction a {
